@@ -198,6 +198,9 @@ export default function Timeline({ itinerary, setItinerary }) {
     const lastSlot = day.slots[day.slots.length - 1]
     const startMinutes = lastSlot ? parseTime(lastSlot.end_time) + 15 : parseTime('09:00')
 
+    const lat = suggestion.lat || (lastSlot?.activity?.lat) || 40.730610
+    const lng = suggestion.lng || (lastSlot?.activity?.lng) || -73.935242
+
     const newSlot = {
       start_time: formatTime(startMinutes),
       end_time: formatTime(startMinutes + (suggestion.estimated_duration_minutes || 90)),
@@ -211,13 +214,19 @@ export default function Timeline({ itinerary, setItinerary }) {
         confidence_score: 0.85,
         reason: suggestion.reason || '',
         estimated_duration_minutes: suggestion.estimated_duration_minutes || 90,
+        lat: lat,
+        lng: lng,
       },
     }
 
     const newDays = JSON.parse(JSON.stringify(itinerary.days))
     newDays[activeDay].slots.push(newSlot)
     newDays[activeDay].total_cost = newDays[activeDay].slots.reduce((s, sl) => s + (sl.activity?.cost || 0), 0)
-    setItinerary({ ...itinerary, days: newDays })
+    
+    // Recalculate root totals
+    const newTotalCost = newDays.reduce((sum, d) => sum + (d.total_cost || 0), 0)
+    
+    setItinerary({ ...itinerary, days: newDays, total_cost: newTotalCost })
     setShowAddPanel(false)
     setSearchQuery('')
     setAiSuggestions([])
