@@ -367,6 +367,58 @@ Return ONLY a valid JSON object. No markdown, no prose.
     }
 
 
+class PlaceSuggestionRequest(BaseModel):
+    city: str
+    day_theme: Optional[str] = ""
+    existing_places: Optional[List[str]] = []
+    mood: Optional[str] = ""
+    interests: Optional[List[str]] = []
+
+
+@app.post("/suggest-places")
+async def suggest_places(req: PlaceSuggestionRequest):
+    existing = ", ".join(req.existing_places) if req.existing_places else "None"
+    interests_str = ", ".join(req.interests) if req.interests else "general sightseeing"
+
+    prompt = f"""You are TripSoul's activity planner. Suggest exactly 5 activities or places to visit in {req.city}, India.
+
+Context:
+- Traveller mood: {req.mood or 'open to anything'}
+- Interests: {interests_str}
+- Day theme: {req.day_theme or 'general exploration'}
+- Already planned: {existing} (do NOT repeat these)
+
+For each suggestion, provide:
+- name: Specific place or activity name
+- category: One of [culture, food, adventure, nature, shopping, nightlife, history]
+- description: 1 sentence, vivid and specific
+- estimated_duration_minutes: realistic number
+- cost: cost in INR (number, 0 if free)
+- reason: Why this fits their mood/interests (1 sentence)
+
+Return ONLY valid JSON. No markdown. No code fences.
+
+{{"suggestions": [
+  {{"name": "...", "category": "...", "description": "...", "estimated_duration_minutes": 90, "cost": 200, "reason": "..."}}
+]}}"""
+
+    data = await generate_with_retry(prompt)
+
+    if data and "suggestions" in data:
+        return data
+
+    # Fallback suggestions
+    return {
+        "suggestions": [
+            {"name": f"{req.city} Heritage Walk", "category": "culture", "description": f"A guided walking tour through the historic lanes of {req.city}.", "estimated_duration_minutes": 120, "cost": 300, "reason": "Great way to understand the city's soul."},
+            {"name": f"Local Street Food Trail", "category": "food", "description": f"Taste the best street food {req.city} has to offer.", "estimated_duration_minutes": 90, "cost": 200, "reason": "No trip is complete without local flavours."},
+            {"name": f"Sunrise Viewpoint", "category": "nature", "description": f"Catch the sunrise from the best vantage point near {req.city}.", "estimated_duration_minutes": 60, "cost": 0, "reason": "A peaceful start to any day."},
+            {"name": f"{req.city} Art Gallery", "category": "culture", "description": f"Explore contemporary and traditional art from the region.", "estimated_duration_minutes": 75, "cost": 100, "reason": "Perfect for a reflective afternoon."},
+            {"name": f"Evening Market", "category": "shopping", "description": f"Browse handicrafts, spices, and souvenirs at the local bazaar.", "estimated_duration_minutes": 90, "cost": 500, "reason": "Pick up unique finds and support local artisans."},
+        ]
+    }
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="127.0.0.1", port=8000)

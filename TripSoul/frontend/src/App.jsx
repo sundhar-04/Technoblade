@@ -91,7 +91,7 @@ export default function App() {
             <MapView itinerary={itinerary} />
           } />
           <Route path="/timeline" element={
-            <Timeline itinerary={itinerary} />
+            <Timeline itinerary={itinerary} setItinerary={setItinerary} />
           } />
           <Route path="/budget" element={
             <BudgetOptimizer

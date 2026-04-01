@@ -92,7 +92,62 @@ async def cities():
         for key, data in CITY_DATA.items()
     }
 
+from pydantic import BaseModel
+from typing import Optional, List
+
+class PlaceSuggestionRequest(BaseModel):
+    city: str
+    day_theme: Optional[str] = ""
+    existing_places: Optional[List[str]] = []
+    mood: Optional[str] = ""
+    interests: Optional[List[str]] = []
+
+@app.post("/suggest-places")
+async def suggest_places(req: PlaceSuggestionRequest):
+    from .models.datasets import get_city_data
+    try:
+        city_data = get_city_data(req.city)
+        attractions = city_data["attractions"]
+    except KeyError:
+        attractions = []
+        
+    # Heuristic filtering
+    query = req.day_theme.lower() if req.day_theme else ""
+    existing = set(req.existing_places or [])
+    
+    candidates = []
+    for a in attractions:
+        if a["name"] in existing:
+            continue
+        
+        # Matches query?
+        if query and query not in a["name"].lower() and query not in a.get("category", "").lower():
+            continue
+            
+        candidates.append({
+            "name": a["name"],
+            "category": a.get("category", "culture"),
+            "description": a.get("description", f"Visit {a['name']}."),
+            "estimated_duration_minutes": int(a.get("duration_hours", 1.5) * 60),
+            "cost": a.get("cost", 0),
+            "reason": "Matches your search criteria.",
+            "lat": a["lat"],
+            "lng": a["lng"]
+        })
+        
+        if len(candidates) >= 5:
+            break
+            
+    if not candidates:
+        # Fallback suggestions
+        candidates = [
+            {"name": f"{req.city} Heritage Walk", "category": "culture", "description": f"A guided walking tour through the historic lanes of {req.city}.", "estimated_duration_minutes": 120, "cost": 300, "reason": "Great way to understand the city's soul.", "lat": 40.730610, "lng": -73.935242},
+            {"name": f"Local Street Food Trail", "category": "food", "description": f"Taste the best street food {req.city} has to offer.", "estimated_duration_minutes": 90, "cost": 200, "reason": "No trip is complete without local flavours.", "lat": 40.730610, "lng": -73.935242},
+        ]
+        
+    return {"suggestions": candidates}
 
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("backend.main:app", host="127.0.0.1", port=8000, reload=True)
+
