@@ -8,11 +8,15 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, field_validator
 from dotenv import load_dotenv
-from google import genai
+from huggingface_hub import InferenceClient
 
 load_dotenv()
-api_key = os.getenv("GEMINI_API_KEY")
-client = genai.Client(api_key=api_key)
+HF_TOKEN = os.getenv("HF_TOKEN")
+hf_client = InferenceClient(
+    model="Qwen/Qwen2.5-7B-Instruct",
+    token=HF_TOKEN,
+    timeout=60,
+)
 
 # ─────────────────────────────────────────────
 # DEV MODE: Set True while tweaking UI.
@@ -55,7 +59,17 @@ class TripSoulPreferences(BaseModel):
         return v if v else []
 
 
-async def generate_with_retry(prompt: str, retries: int = 3, delay: int = 2):
+def clean_json_string(raw_text: str) -> str:
+    # Remove thought blocks
+    text = re.sub(r"<think>.*?</think>", "", raw_text, flags=re.DOTALL).strip()
+    # Find the first '{' and the last '}'
+    start_idx = text.find('{')
+    end_idx = text.rfind('}')
+    if start_idx == -1 or end_idx == -1:
+        return text
+    return text[start_idx:end_idx + 1]
+
+async def generate_with_retry(prompt: str, retries: int = 3, delay: int = 2, max_tokens: int = 2000) -> Optional[dict]:
     # ── Cache check ──────────────────────────────────────────────────────────
     cache_key = hashlib.md5(prompt.encode()).hexdigest()
     if cache_key in _cache:
@@ -67,63 +81,44 @@ async def generate_with_retry(prompt: str, retries: int = 3, delay: int = 2):
         print("[DEV MODE] Skipping API call — returning None to trigger fallback")
         return None
 
-    # ── Model list: most stable first ───────────────────────────────────────
-    # gemini-1.5-flash is tried first as it has the widest availability.
-    # Bump a model to the top if you find it works better for your key/region.
-    models = [
-    "gemini-2.5-flash",      # Current stable — try first
-    "gemini-2.0-flash",      # Keep as fallback until you confirm 2.5 works
-]
+    for attempt in range(retries):
+        try:
+            print(f"\n--- Trying Hugging Face model (attempt {attempt + 1}) ---")
+            response = hf_client.chat_completion(
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=max_tokens,
+                temperature=0.7,
+            )
+            raw = response.choices[0].message.content
+            if not raw:
+                print("[HF ERROR] Empty response")
+                continue
+                
+            print(f"[RAW]\n{raw[:300]}\n")
 
-    for model in models:
-        for attempt in range(retries):
-            try:
-                print(f"\n--- Trying {model} (attempt {attempt + 1}) ---")
-                response = client.models.generate_content(
-                    model=model,
-                    contents=prompt
-                )
-                raw = response.text.strip()
-                print(f"[RAW]\n{raw[:300]}\n")
+            json_text = clean_json_string(raw)
+            if not json_text or '{' not in json_text:
+                print("[NO JSON FOUND] - triggering retry")
+                continue
 
-                text = re.sub(r"```(?:json)?\s*", "", raw, flags=re.IGNORECASE).strip()
-                text = re.sub(r"```\s*$", "", text).strip()
+            parsed = json.loads(json_text)
+            print(f"[PARSED OK] keys={list(parsed.keys())}")
 
-                parsed = json.loads(text)
-                print(f"[PARSED OK] model={model} keys={list(parsed.keys())}")
+            _cache[cache_key] = parsed
+            print(f"[CACHED] Response stored for future identical requests")
+            return parsed
 
-                # Store in cache before returning
-                _cache[cache_key] = parsed
-                print(f"[CACHED] Response stored for future identical requests")
-                return parsed
+        except json.JSONDecodeError as e:
+            print(f"[JSON ERROR] {e}")
+            break
 
-            except json.JSONDecodeError as e:
-                print(f"[JSON ERROR] {e}")
-                break  # Bad JSON from this model — try next model, not retry
-
-            except Exception as e:
-                err = str(e)
-                print(f"[ERROR] {type(e).__name__}: {err[:200]}")
-
-                if "404" in err or "NOT_FOUND" in err:
-                    print(f"[SKIP] {model} not available, trying next model...")
-                    break  # Model doesn't exist for this key/region — skip immediately
-
-                if "429" in err or "RESOURCE_EXHAUSTED" in err:
-                    match = re.search(r"retry in ([\d.]+)s", err)
-                    # Use Google's suggested wait if provided, otherwise 30s minimum
-                    wait = max(float(match.group(1)) + 2, 30) if match else 30
-                    print(f"[RATE LIMIT] Quota hit on {model}. Waiting {wait}s...")
-                    if attempt < retries - 1:
-                        await asyncio.sleep(wait)
-                    else:
-                        print(f"[RATE LIMIT] All retries exhausted for {model}, trying next model...")
-                        break
-
-                elif attempt < retries - 1:
-                    await asyncio.sleep(delay * (attempt + 1))
-                else:
-                    break
+        except Exception as e:
+            err = str(e)
+            print(f"[ERROR] {type(e).__name__}: {err[:200]}")
+            if attempt < retries - 1:
+                await asyncio.sleep(delay * (attempt + 1))
+            else:
+                break
 
     print("[ALL MODELS FAILED] Using fallback")
     return None
@@ -180,6 +175,7 @@ EXAMPLE of a high-quality entry (do not copy this — it's only to show format a
 }}
 
 Return ONLY a valid JSON object. No markdown. No explanation. No code fences.
+You MUST return exactly 3 recommendations. (min_items: 3)
 
 OUTPUT STRUCTURE:
 {{
@@ -213,6 +209,35 @@ OUTPUT STRUCTURE:
             if not rec.get("icon"):
                 rec["icon"] = "📍"
 
+        recs = data.get("recommendations", [])
+
+        if len(recs) < 3:
+            print("[FIX] Not enough recommendations, using fallback to fill")
+
+            fallback = [
+                {
+                    "name": "Kasol",
+                    "state": "Himachal Pradesh",
+                    "icon": "🌲",
+                    "reason": "A peaceful riverside retreat perfect for quiet bonding.",
+                    "itinerary_hint": "Stay ₹600. Walk Parvati river trail.",
+                    "tags": ["Chill", "Nature", "River"]
+                },
+                {
+                    "name": "McLeod Ganj",
+                    "state": "Himachal Pradesh",
+                    "icon": "🏔️",
+                    "reason": "A calm hill town blending Tibetan culture and mountain serenity.",
+                    "itinerary_hint": "Hostel ₹500. Visit Dalai Lama temple.",
+                    "tags": ["Culture", "Mountains", "Peace"]
+                }
+            ]
+
+            data["recommendations"] += fallback
+
+        # ensure exactly 3
+        data["recommendations"] = data["recommendations"][:3]
+
         print(f"[SUCCESS] {len(data['recommendations'])} recommendations")
         return data
 
@@ -237,103 +262,86 @@ async def get_handbook(city: str):
         return _handbook_cache[city_key]
 
     # 2. Prepare Prompt
-    prompt = f"""
-    Return ONLY valid JSON.
-No markdown, no explanation.
-
-Rules:
-- Use double quotes only
-- No trailing commas
-- Escape all quotes inside text
-- Ensure JSON is complete and valid
-    You are TripSoul's lead destination researcher. 
+    prompt = f"""Return ONLY valid JSON. No markdown, no prose.
+You are TripSoul's lead destination researcher. 
 Generate a hyper-detailed, authoritative travel handbook for {city}, India.
-This data will power a dedicated destination page; ensure information is granular and expert-level.
-
-Return ONLY a valid JSON object. No markdown, no prose.
 
 {{
   "city": "{city}",
   "state": "State name",
-  "tagline": "A poetic, evocative tagline specific to {city}'s soul",
+  "tagline": "Evocative tagline",
   "Overview": {{
     "destination_name": "{city}, State",
-    "tagline": "Extended evocative description",
+    "tagline": "Extended description",
     "hero_images": [
-      {{ "scene": "Iconic landmark", "mood": "Cinematic", "time_of_day": "Golden Hour" }},
-      {{ "scene": "Local street life", "mood": "Vibrant", "time_of_day": "Noon" }}
+      {{ "scene": "Iconic landmark", "mood": "Cinematic", "time_of_day": "Golden Hour" }}
     ]
   }},
-  "Real_Time_Content": {{
+  "real_time": {{
     "aqi": {{ "avg_aqi": 55, "season": "Current", "advisory": "Expert air quality advice" }},
-    "best_time_to_visit": "Months with specific weather/festival reasoning",
+    "best_time_to_visit": "Months with reasoning",
     "seasonal_breakdown": [
-      {{ "season": "Summer", "conditions": "Temp/Weather info", "crowd_level": "High/Medium/Low" }},
-      {{ "season": "Monsoon", "conditions": "Temp/Weather info", "crowd_level": "Low" }}
+      {{ "season": "Summer", "conditions": "Temp/Weather info", "crowd_level": "High" }}
     ],
-    "traffic_tips": ["Expert advice on local commuting peaks"],
+    "traffic_tips": ["Commuting peaks"],
     "festivals": [{{ "name": "Festival", "month": "Month", "description": "Why it matters" }}]
   }},
-  "Budget_Insights": {{
+  "budget": {{
     "Backpacker": "₹800–₹1,500",
     "Comfortable": "₹2,500–₹5,000",
     "Luxury": "₹10,000+"
   }},
-  "Travel_Planning": [
-    {{ "mode": "Flight", "details": "Nearest airport & typical transfer times", "booking_tip": "When to book" }},
-    {{ "mode": "Train", "details": "Major stations & connectivity hubs", "booking_tip": "Quota advice" }}
+  "connectivity": [
+    {{ "mode": "Flight", "details": "Nearest airport", "booking_tip": "When to book" }}
   ],
-  "Things_To_Do": [
-    {{ "traveler_type": "Adventure", "activities": ["Specific trek name", "Specific activity"] }},
-    {{ "traveler_type": "Spiritual", "activities": ["Specific temple/ashram", "Morning ritual"] }}
+  "things_to_do": [
+    {{ "traveler_type": "Adventure", "activities": ["Specific trek name", "Specific activity"] }}
   ],
-  "Food_And_Dining": {{
-    "must_try_dishes": ["Dish Name (Description)", "Local Specialty"],
-    "fine_dining": ["Specific Restaurant Name - What to order"],
+  "food": {{
+    "must_try_dishes": ["Dish Name (Description)"],
+    "fine_dining": ["Restaurant Name - What to order"],
     "cafe_picks": ["Hidden gem cafe names"],
-    "hygiene_tips": ["Street food safety advice specific to this region"]
+    "hygiene_tips": ["Street food safety advice"]
   }},
-  "Culture_And_Heritage": {{
-    "historical_context": "Deep-dive 2-sentence history of the city",
+  "culture": {{
+    "historical_context": "Deep-dive 2-sentence history",
     "spiritual_sites": ["Site Name - Significance"],
-    "shopping_crafts": ["What to buy & which specific market to find it"],
-    "unesco_sites": [{{ "name": "Site", "status": "UNESCO/Notable", "note": "Expert tip" }}]
+    "shopping_crafts": ["What to buy & market"],
+    "unesco_sites": [{{ "name": "Site", "status": "UNESCO/Notable", "note": "Tip" }}]
   }},
-  "Offbeat_Gems": [
-    {{ "name": "Place Name", "why_special": "Why tourists miss it", "best_for": "Photography/Solitude", "distance_from_town": "Distance" }}
+  "offbeat_gems": [
+    {{ "name": "Place", "why_special": "Why tourists miss it", "best_for": "Photography", "distance_from_town": "Distance" }}
   ],
-  "Safety_And_Accessibility": {{
+  "safety": {{
     "safety_score": 9,
-    "general_tips": ["Scams to avoid", "Night safety"],
+    "general_tips": ["Night safety"],
     "womens_safety": ["Specific advice for solo women"],
-    "emergency_contacts": {{ "police": "100", "ambulance": "102", "hospital_name": "Best Local Hospital", "hospital_number": "Phone" }},
+    "emergency_contacts": {{ "police": "100", "ambulance": "102" }},
     "accessibility_sites": [
-      {{ "site": "Landmark", "wheelchair": true, "steps_involved": "0", "mobility_notes": "Detailed ramp info" }}
+      {{ "site": "Landmark", "wheelchair": true, "steps_involved": "0", "mobility_notes": "Ramp info" }}
     ]
   }},
-  "Essential_Practicalities": {{
+  "practicalities": {{
     "permits": ["Inner Line Permit info if applicable"],
-    "currency_tips": ["ATM availability & UPI adoption level"],
-    "network_coverage": "Airtel/Jio/Vi reliability",
-    "health_hygiene": ["Water safety & common seasonal ailments"]
+    "currency_tips": ["ATM & UPI"],
+    "network_coverage": "Reliability",
+    "health_hygiene": ["Water safety"]
   }},
   "Day_Trips": [
-    {{ "name": "Excursion Name", "highlights": "What to see", "distance_km": 45, "duration": "Full Day" }}
+    {{ "name": "Excursion", "highlights": "What to see", "distance_km": 45, "duration": "Full Day" }}
   ],
   "Responsible_Travel": {{
-    "cultural_etiquette": ["Dress codes", "Photography taboos"],
-    "sustainability_tips": ["Plastic rules", "Water conservation"],
-    "support_local": ["Specific NGO or artisan collective to visit"]
+    "cultural_etiquette": ["Dress codes"],
+    "sustainability_tips": ["Water conservation"],
+    "support_local": ["NGO or artisan collective"]
   }},
   "Media_Hub": {{
-    "photography_spots": ["Exact spot for the best sunrise view"],
-    "books": ["One book set here"],
-    "videos": ["One documentary/film reference"]
+    "photography_spots": ["Exact spot for sunrise view"]
   }}
 }}"""
 
     # 3. Call AI with your existing retry logic
-    data = await generate_with_retry(prompt)
+    data = await generate_with_retry(prompt, max_tokens=4000)
 
     if data:
         _handbook_cache[city_key] = data

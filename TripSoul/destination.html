@@ -120,12 +120,16 @@
     .budget-lbl{font-family:'Syne',sans-serif;font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:var(--faint);margin-bottom:6px}
     .budget-val{font-size:15px;font-weight:500;color:var(--gold)}
 
-    /* Transport */
-    .transport-list{display:flex;flex-direction:column;gap:8px}
-    .transport-item{display:grid;grid-template-columns:80px 1fr;gap:14px;align-items:start;background:var(--bg-r);border:1px solid var(--rule);border-radius:var(--r-md);padding:1rem 1.2rem;transition:border-color .2s}
-    .transport-item:hover{border-color:var(--gold-b)}
-    .transport-mode{font-family:'Syne',sans-serif;font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:var(--gold);font-weight:600;padding-top:2px}
-    .transport-detail{font-size:13px;color:var(--muted);line-height:1.6}
+    /* Transport Cards */
+    .transport-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .transport-card{background:var(--bg-r);border:1px solid var(--rule);border-radius:var(--r-md);overflow:hidden;transition:all .25s}
+    .transport-card:hover{border-color:var(--gold-b);transform:translateY(-2px)}
+    .transport-card-header{display:flex;align-items:center;gap:10px;padding:1rem 1.1rem .6rem;}
+    .transport-card-emoji{font-size:1.5rem}
+    .transport-card-mode{font-family:'Syne',sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--gold);font-weight:600}
+    .transport-card-body{padding:0 1.1rem 1rem;font-size:12px;color:var(--muted);line-height:1.5}
+    .transport-card-cost{display:inline-block;margin-top:6px;font-size:11px;color:var(--gold);background:var(--gold-dim);border:1px solid var(--gold-b);border-radius:999px;padding:2px 10px}
+    .transport-card-tip{margin-top:6px;font-size:10px;color:var(--faint);font-style:italic}
 
     /* Pill */
     .pill-group{display:flex;flex-wrap:wrap;gap:6px}
@@ -141,11 +145,14 @@
     .crowd-medium{background:var(--gold-dim);color:var(--gold);border:1px solid var(--gold-b)}
     .crowd-low{background:var(--green-dim);color:var(--green);border:1px solid var(--green-b)}
 
-    /* Tips */
-    .tip-row{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--rule)}
-    .tip-row:last-child{border-bottom:none}
-    .tip-arrow{color:var(--gold);flex-shrink:0;font-size:13px;line-height:1.6}
-    .tip-text{font-size:13px;color:var(--muted);line-height:1.6}
+    /* Tip Cards */
+    .tip-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .tip-card{background:var(--bg-r);border:1px solid var(--rule);border-radius:var(--r-md);padding:1rem;display:flex;gap:12px;align-items:flex-start;transition:all .25s}
+    .tip-card:hover{border-color:var(--gold-b);transform:translateY(-2px)}
+    .tip-card-icon{width:32px;height:32px;border-radius:var(--r-sm);background:var(--gold-dim);border:1px solid var(--gold-b);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px}
+    .tip-card-text{font-size:12px;color:var(--muted);line-height:1.5}
+    .tip-card.warn .tip-card-icon{background:var(--red-dim);border-color:var(--red-b)}
+    .tip-card.safe .tip-card-icon{background:var(--green-dim);border-color:var(--green-b)}
 
     /* Emergency */
     .emg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
@@ -176,11 +183,12 @@
     .h-card-title{font-family:'Syne',sans-serif;font-size:10px;font-weight:600;color:var(--cream);margin-bottom:6px;letter-spacing:.04em}
     .h-card-body{font-size:12px;color:var(--muted);line-height:1.5}
 
-    /* Resp */
-    .resp-cols{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
-    .resp-col-title{font-family:'Syne',sans-serif;font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:var(--gold);margin-bottom:8px}
-    .resp-item{font-size:12px;color:var(--muted);padding:4px 0;line-height:1.5;border-bottom:1px solid var(--rule)}
-    .resp-item:last-child{border-bottom:none}
+    /* Responsible Cards */
+    .resp-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+    .resp-card{background:var(--bg-r);border:1px solid var(--rule);border-radius:var(--r-md);padding:.9rem 1rem;display:flex;gap:10px;align-items:flex-start;transition:all .25s}
+    .resp-card:hover{border-color:var(--green-b);transform:translateY(-2px)}
+    .resp-card-icon{width:28px;height:28px;border-radius:var(--r-sm);background:var(--green-dim);border:1px solid var(--green-b);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px}
+    .resp-card-text{font-size:12px;color:var(--muted);line-height:1.5}
 
     /* Media */
     .media-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -343,12 +351,22 @@ function renderHandbook(d){
     ttd.forEach(t=>{
       const acts=asArray(t.activities);
       acts.forEach(a=>{
-        cards+=vcard(nextEmoji('a'),a,'',t.traveler_type,[{text:t.traveler_type,gold:true}]);
+        // Split on first ':' or '–' to get title + description
+        const sep=a.indexOf(':')!==-1?':':a.indexOf('–')!==-1?'–':null;
+        let title=a, desc='';
+        if(sep){const idx=a.indexOf(sep);title=a.substring(0,idx).trim();desc=a.substring(idx+1).trim();}
+        cards+=vcard(nextEmoji('a'),title,desc,t.traveler_type,[{text:t.traveler_type,gold:true}]);
       });
     });
     body.innerHTML+=makeSection('activities','🎯','Things To Do',`<div class="vgrid c3">${cards}</div>`);
   } else if(topExp?.length){
-    body.innerHTML+=makeSection('activities','🎯','Top Experiences',`<div class="vgrid c3">${topExp.map(e=>vcard(nextEmoji('a'),e.name||e,e.duration||'',null,e.cost?[{text:e.cost,gold:true}]:null)).join('')}</div>`);
+    body.innerHTML+=makeSection('activities','🎯','Top Experiences',`<div class="vgrid c3">${topExp.map(e=>{
+      const name=e.name||e;
+      const sep=typeof name==='string'&&name.indexOf(':')!==-1?':':null;
+      let title=name,desc=e.duration||'';
+      if(sep){const idx=name.indexOf(sep);title=name.substring(0,idx).trim();desc=name.substring(idx+1).trim()+(e.duration?' · '+e.duration:'');}
+      return vcard(nextEmoji('a'),title,desc,null,e.cost?[{text:e.cost,gold:true}]:null);
+    }).join('')}</div>`);
   }
 
   // ══ Food & Dining — VISUAL CARDS ══
@@ -361,17 +379,29 @@ function renderHandbook(d){
     let foodHtml='';
     if(mustTry.length){
       foodHtml+=`<div class="sub-lbl">Must-Try Dishes</div><div class="vgrid c4" style="margin-bottom:18px">${mustTry.map(f=>{
-        const parts=f.match(/^([^(]+)(?:\((.+)\))?$/);
-        const name=parts?parts[1].trim():f;
-        const desc=parts&&parts[2]?parts[2].trim():'';
+        // Try splitting: "Dish Name (Description)" or "Dish Name: Description" or "Dish - Description"
+        let name=f, desc='';
+        const paren=f.match(/^([^(]+)\((.+)\)(.*)$/);
+        if(paren){name=paren[1].trim();desc=paren[2].trim()+(paren[3]?'  '+paren[3].trim():'');}
+        else{const colon=f.indexOf(':');if(colon>0&&colon<f.length-1){name=f.substring(0,colon).trim();desc=f.substring(colon+1).trim();}}
         return vcard(nextEmoji('f'),name,desc,null,null);
       }).join('')}</div>`;
     }
     if(fineDining.length){
-      foodHtml+=`<div class="sub-lbl">Fine Dining</div><div class="vgrid c3" style="margin-bottom:18px">${fineDining.map(r=>vcard(nextEmoji('f'),r,'',null,[{text:'Fine Dining',gold:true}])).join('')}</div>`;
+      foodHtml+=`<div class="sub-lbl">Fine Dining</div><div class="vgrid c3" style="margin-bottom:18px">${fineDining.map(r=>{
+        let name=r,desc='';
+        const sep=r.indexOf(' - ');if(sep>0){name=r.substring(0,sep).trim();desc=r.substring(sep+3).trim();}
+        else{const colon=r.indexOf(':');if(colon>0){name=r.substring(0,colon).trim();desc=r.substring(colon+1).trim();}}
+        return vcard(nextEmoji('f'),name,desc,null,[{text:'Fine Dining',gold:true}]);
+      }).join('')}</div>`;
     }
     if(cafes.length){
-      foodHtml+=`<div class="sub-lbl">Cafés & Local Spots</div><div class="vgrid c3" style="margin-bottom:18px">${cafes.map(c=>vcard(nextEmoji('f'),c,'',null,[{text:'Café'}])).join('')}</div>`;
+      foodHtml+=`<div class="sub-lbl">Cafés & Local Spots</div><div class="vgrid c3" style="margin-bottom:18px">${cafes.map(c=>{
+        let name=c,desc='';
+        const sep=c.indexOf(' - ');if(sep>0){name=c.substring(0,sep).trim();desc=c.substring(sep+3).trim();}
+        else{const colon=c.indexOf(':');if(colon>0){name=c.substring(0,colon).trim();desc=c.substring(colon+1).trim();}}
+        return vcard(nextEmoji('f'),name,desc,null,[{text:'Café'}]);
+      }).join('')}</div>`;
     }
     if(hygiene.length){
       foodHtml+=`<div class="sub-lbl" style="margin-top:8px">Hygiene Tips</div>${hygiene.map(h=>`<div class="tip-row"><span class="tip-arrow">→</span><span class="tip-text">${h}</span></div>`).join('')}`;
@@ -386,10 +416,20 @@ function renderHandbook(d){
     let cHtml='';
     if(ch.historical_context)cHtml+=`<p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:16px;padding-left:12px;border-left:2px solid var(--gold-b)">${ch.historical_context}</p>`;
     if(spiritual.length){
-      cHtml+=`<div class="sub-lbl">Spiritual Sites</div><div class="vgrid c3" style="margin-bottom:16px">${spiritual.map(s=>vcard(nextEmoji('p'),s,'',null,[{text:'Spiritual',gold:true}])).join('')}</div>`;
+      cHtml+=`<div class="sub-lbl">Spiritual Sites</div><div class="vgrid c3" style="margin-bottom:16px">${spiritual.map(s=>{
+        let name=s,desc='';
+        const sep=s.indexOf(' - ');if(sep>0){name=s.substring(0,sep).trim();desc=s.substring(sep+3).trim();}
+        else{const colon=s.indexOf(':');if(colon>0){name=s.substring(0,colon).trim();desc=s.substring(colon+1).trim();}}
+        return vcard(nextEmoji('p'),name,desc,null,[{text:'Spiritual',gold:true}]);
+      }).join('')}</div>`;
     }
     if(crafts.length){
-      cHtml+=`<div class="sub-lbl">Shopping & Crafts</div><div class="vgrid c3" style="margin-bottom:16px">${crafts.map(c=>vcard('🛍️',c,'',null,null)).join('')}</div>`;
+      cHtml+=`<div class="sub-lbl">Shopping & Crafts</div><div class="vgrid c3" style="margin-bottom:16px">${crafts.map(c=>{
+        let name=c,desc='';
+        const sep=c.indexOf(' - ');if(sep>0){name=c.substring(0,sep).trim();desc=c.substring(sep+3).trim();}
+        else{const colon=c.indexOf(':');if(colon>0){name=c.substring(0,colon).trim();desc=c.substring(colon+1).trim();}}
+        return vcard('🛍️',name,desc,null,null);
+      }).join('')}</div>`;
     }
     if(unesco.length){
       cHtml+=`<div class="sub-lbl">UNESCO / Notable Heritage</div><div class="vgrid c2">${unesco.map(u=>vcard('🏛️',u.name||u,u.note||'',u.status||null,null)).join('')}</div>`;
