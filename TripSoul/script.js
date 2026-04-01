@@ -10,6 +10,32 @@
 const API_URL = 'http://127.0.0.1:8000';
 
 let shownPlaces = [];
+let lastRecommendations = null;
+
+(function checkRestore() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('restore') === '1') {
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        const savedPrefs = sessionStorage.getItem('lastPreferences');
+        const savedShown = sessionStorage.getItem('lastShownPlaces');
+        const savedRecs = sessionStorage.getItem('lastRecommendations');
+        if (savedPrefs && savedRecs) {
+          const payload = JSON.parse(savedPrefs);
+          lastRecommendations = JSON.parse(savedRecs);
+          if (savedShown) shownPlaces = JSON.parse(savedShown);
+          answers = { ...answers, ...payload };
+          const style = (answers.style || ['Comfortable'])[0];
+          renderSoulPanel(payload, lastRecommendations[0]);
+          renderStyleBanner(style, answers.notes || '');
+          renderResultCards(lastRecommendations, style);
+          showScreen('screen-results');
+          history.replaceState(null, '', 'index.html');
+        }
+      }, 100);
+    });
+  }
+})();
 
 const QUESTIONS = [
   {
@@ -484,6 +510,8 @@ async function showResults() {
     renderSoulPanel(payload, recs[0]);
     renderStyleBanner(style, answers.notes || '');
     renderResultCards(recs, style);  // shownPlaces updated here, ready for next call
+    lastRecommendations = recs;
+    sessionStorage.setItem('lastRecommendations', JSON.stringify(recs));
     showScreen('screen-results');
   }, waitLeft + 400);
 }
@@ -838,5 +866,19 @@ function closeHandbook() {
 }
 
 function goToDestination(cityName) {
+  const payload = {
+    mood: answers.mood || [],
+    who: answers.who || [],
+    pace: answers.pace || [],
+    style: answers.style || ['Comfortable'],
+    duration: answers.duration || [],
+    scenery: answers.scenery || [],
+    food: answers.food || [],
+    season: answers.season || [],
+    region: answers.region || ['Anywhere'],
+    notes: answers.notes || '',
+  };
+  sessionStorage.setItem('lastPreferences', JSON.stringify(payload));
+  sessionStorage.setItem('lastShownPlaces', JSON.stringify(shownPlaces));
   window.location.href = `destination.html?city=${encodeURIComponent(cityName)}`;
 }

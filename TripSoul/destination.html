@@ -237,7 +237,7 @@
 <nav class="sec-nav" id="sec-nav"><div class="sec-nav-inner" id="sec-nav-inner"></div></nav>
 
 <div class="page-wrap" id="main-content" style="display:none">
-  <a href="index.html" class="back-link">
+  <a href="index.html" id="back-link" class="back-link">
     <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M9.5 12.5L4.5 7.5l5-5"/></svg>
     Back to recommendations
   </a>
@@ -530,6 +530,17 @@ window.addEventListener('scroll',()=>{document.getElementById('btt').classList.t
 async function init(){
   if(!city){window.location.href='index.html';return;}
   document.title='TripSoul | '+city;
+  
+  document.getElementById('back-link').addEventListener('click', function(e) {
+    e.preventDefault();
+    const saved = sessionStorage.getItem('lastPreferences');
+    if (saved) {
+      window.location.href = 'index.html?restore=1';
+    } else {
+      window.location.href = 'index.html';
+    }
+  });
+  
   try{
     const res=await fetch(`${API_URL}/handbook/${encodeURIComponent(city)}`);
     if(!res.ok)throw new Error('Status '+res.status);
