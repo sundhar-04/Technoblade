@@ -164,11 +164,7 @@ PRIORITY ORDER (match in this sequence — top = most important):
 10. Notes: {prefs.notes or 'None'}
 
 TONE RULES:
-- # In the TONE RULES section of your prompt, change:
-"reason": 2 sentences. Evocative and personal...
-
-# To:
-"reason": Exactly 2 sentences, maximum 40 words total. Evocative and personal... — reference their mood and companions directly.
+- "reason": Exactly 2 sentences, maximum 40 words total. Evocative and personal — reference their mood and companions directly.
   Do NOT use generic phrases like "perfect destination" or "ideal for travellers".
 - "itinerary_hint": 2 lines. Must include at least one specific price in ₹ and one named trail, dish, or landmark.
 - "tags": exactly 3. Specific over generic — prefer "Living root bridges" over "Nature".
@@ -200,21 +196,20 @@ OUTPUT STRUCTURE:
 }}"""
 
     data = await generate_with_retry(prompt)
-    # In get_recommendations, after data is returned, add:
     if data and "recommendations" in data:
-    # sanitise tags, reason, and icon for EVERY recommendation
+        # Sanitise tags, reason, and icon for EVERY recommendation
         for rec in data["recommendations"]:
-        # 1. Ensure exactly 3 tags
+            # 1. Ensure exactly 3 tags
             rec["tags"] = rec.get("tags", [])[:3]
             while len(rec["tags"]) < 3:
                 rec["tags"].append("India")
 
-        # 2. Truncate reason if it exceeds 45 words
+            # 2. Truncate reason if it exceeds 45 words
             words = rec.get("reason", "").split()
             if len(words) > 45:
                 rec["reason"] = " ".join(words[:45]) + "..."
 
-        # 3. Ensure a fallback icon exists
+            # 3. Ensure a fallback icon exists
             if not rec.get("icon"):
                 rec["icon"] = "📍"
 
