@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { generateItinerary } from '../api/client'
+import { useState, useEffect } from 'react'
+import { generateItinerary, searchFlights, searchHotels } from '../api/client'
 
 const CITIES = [
   { key: 'nyc', label: 'New York City', icon: '🗽' },
@@ -15,9 +15,11 @@ const DIETARY = ['any', 'vegetarian', 'vegan', 'halal']
 
 export default function Planner({ onGenerated, itinerary, weather }) {
   const [step, setStep] = useState(1)
+  const [originCity, setOriginCity] = useState('')
   const [city, setCity] = useState('nyc')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
+  const [duration, setDuration] = useState(3)
   const [budget, setBudget] = useState(500)
   const [partySize, setPartySize] = useState('couple')
   const [mood, setMood] = useState('relaxed')
@@ -25,6 +27,19 @@ export default function Planner({ onGenerated, itinerary, weather }) {
   const [interests, setInterests] = useState(['culture', 'food'])
   const [pace, setPace] = useState('balanced')
   
+  // Flight selection state
+  const [outboundFlights, setOutboundFlights] = useState([])
+  const [returnFlights, setReturnFlights] = useState([])
+  const [selectedOutbound, setSelectedOutbound] = useState(null)
+  const [selectedReturn, setSelectedReturn] = useState(null)
+  const [flightLoading, setFlightLoading] = useState(false)
+  const [flightError, setFlightError] = useState(null)
+  
+  // Hotel selection state
+  const [hotels, setHotels] = useState([])
+  const [selectedHotel, setSelectedHotel] = useState(null)
+  const [hotelLoading, setHotelLoading] = useState(false)
+  const [hotelError, setHotelError] = useState(null)  
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
@@ -34,26 +49,85 @@ export default function Planner({ onGenerated, itinerary, weather }) {
     )
   }
 
+  // Sync duration from date inputs
+  useEffect(() => {
+    if (startDate && endDate) {
+      const diff = new Date(endDate) - new Date(startDate)
+      const days = Math.ceil(diff / (1000 * 60 * 60 * 24))
+      if (days >= 1 && days <= 14) setDuration(days)
+    }
+  }, [startDate, endDate])
+
+  const handleSearchFlights = async () => {
+    if (!originCity.trim()) {
+      setFlightError('Please enter an origin city')
+      return
+    }
+    setFlightLoading(true)
+    setFlightError(null)
+    setOutboundFlights([])
+    setReturnFlights([])
+    setSelectedOutbound(null)
+    setSelectedReturn(null)
+
+    try {
+      const destLabel = CITIES.find(c => c.key === city)?.label || city
+      
+      const [outRes, retRes] = await Promise.all([
+        searchFlights({ origin_city: originCity, destination_city: city, date: startDate }),
+        searchFlights({ origin_city: city, destination_city: originCity, date: endDate })
+      ])
+      
+      setOutboundFlights(outRes.flights || [])
+      setReturnFlights(retRes.flights || [])
+      
+      if (!outRes.flights?.length && !retRes.flights?.length) {
+        setFlightError('No flights found for this route.')
+      }
+    } catch (e) {
+      setFlightError(e.message)
+    }
+    setFlightLoading(false)
+  }
+
+  const handleSearchHotels = async () => {
+    setHotelLoading(true)
+    setHotelError(null)
+    setHotels([])
+    setSelectedHotel(null)
+    
+    const durationSec = duration
+
+    try {
+      const res = await searchHotels({ city, nights: durationSec, budget, party_size: partySize, mood })
+      setHotels(res.hotels || [])
+      if (!res.hotels?.length) setHotelError('No hotels found matching your criteria.')
+    } catch (e) {
+      setHotelError(e.message)
+    }
+    setHotelLoading(false)
+  }
+
   const handleGenerate = async () => {
     setLoading(true)
     setError(null)
     
-    // Calculate simple duration from dates if selected, else default 3
-    let durationSec = 3
-    if (startDate && endDate) {
-        const diff = new Date(endDate) - new Date(startDate)
-        durationSec = Math.max(1, Math.ceil(diff / (1000 * 60 * 60 * 24)))
-    }
+    const durationSec = duration
 
     try {
       const data = await generateItinerary({ 
-          city, budget, duration: durationSec, 
-          start_date: startDate, end_date: endDate,
-          party_size: partySize, mood, dietary_preference: dietary,
-          interests, pace 
+          planner: {
+              city, origin_city: originCity, budget, duration: durationSec, 
+              start_date: startDate, end_date: endDate,
+              party_size: partySize, mood, dietary_preference: dietary,
+              interests, pace
+          },
+          selected_outbound: selectedOutbound,
+          selected_return: selectedReturn,
+          selected_hotel: selectedHotel,
       })
       onGenerated(data)
-      setStep(5) // Results view
+      setStep(7) // Results view
     } catch (e) {
       setError(e.message)
     }
@@ -62,14 +136,126 @@ export default function Planner({ onGenerated, itinerary, weather }) {
   
   const resetPlanner = () => {
       onGenerated(null)
+      setSelectedOutbound(null)
+      setSelectedReturn(null)
+      setSelectedHotel(null)
+      setOutboundFlights([])
+      setReturnFlights([])
+      setHotels([])
       setStep(1)
   }
+
+  const formatTime = (isoStr) => {
+    if (!isoStr) return '--:--'
+    const t = isoStr.split('T')[1]
+    return t ? t.substring(0, 5) : '--:--'
+  }
+
+  const renderFlightCard = (flight, isSelected, onSelect) => (
+    <div 
+      key={`${flight.iata}${flight.flight_number}`}
+      onClick={() => onSelect(flight)}
+      style={{
+        padding: '1rem',
+        borderRadius: 12,
+        border: isSelected ? '2px solid var(--gold)' : '1px solid var(--border)',
+        background: isSelected ? 'rgba(232, 168, 56, 0.08)' : 'var(--surface)',
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+        marginBottom: 8,
+      }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <div style={{ fontWeight: 600, fontSize: 15 }}>
+            ✈️ {flight.carrier}
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--text-dim)', marginTop: 2 }}>
+            {flight.iata}{flight.flight_number} · {flight.dep_airport} → {flight.arr_airport}
+          </div>
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ fontWeight: 700, fontSize: 18, color: 'var(--gold)' }}>
+            ${flight.price}
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>
+            {flight.class}
+          </div>
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: 16, marginTop: 10, fontSize: 13, color: 'var(--text-dim)' }}>
+        <span>🛫 {formatTime(flight.departure_time)}</span>
+        <span style={{ color: 'var(--text-faint)' }}>→</span>
+        <span>🛬 {formatTime(flight.arrival_time)}</span>
+        <span style={{ marginLeft: 'auto', fontSize: 11 }}>{flight.duration_min}min</span>
+      </div>
+      {isSelected && (
+        <div style={{ marginTop: 8, fontSize: 11, color: 'var(--gold)', fontWeight: 600 }}>
+          ✓ Selected
+        </div>
+      )}
+    </div>
+  )
+
+  const renderHotelCard = (hotel, isSelected, onSelect) => (
+    <div 
+      key={hotel.id}
+      onClick={() => onSelect(hotel)}
+      style={{
+        padding: '1rem',
+        borderRadius: 12,
+        border: isSelected ? '2px solid var(--gold)' : '1px solid var(--border)',
+        background: isSelected ? 'rgba(232, 168, 56, 0.08)' : 'var(--surface)',
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+        marginBottom: 8,
+      }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <div style={{ fontWeight: 600, fontSize: 15 }}>
+            🏨 {hotel.name}
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--text-dim)', marginTop: 2 }}>
+            {hotel.stars}★ {hotel.style} · {hotel.neighborhood}
+          </div>
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ fontWeight: 700, fontSize: 18, color: 'var(--gold)' }}>
+            ${hotel.total_price}
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>
+            for {hotel.nights} nights
+          </div>
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 10 }}>
+        {hotel.amenities.slice(0, 3).map(a => (
+          <span key={a} style={{ fontSize: 10, background: 'var(--bg)', padding: '2px 6px', borderRadius: 4, color: 'var(--text-dim)' }}>
+            {a}
+          </span>
+        ))}
+        <span style={{ fontSize: 10, color: '#4CC9A0', border: '1px solid #4CC9A0', padding: '1px 5px', borderRadius: 4, marginLeft: 'auto' }}>
+          {hotel.budget_fit}
+        </span>
+      </div>
+      {isSelected && (
+        <div style={{ marginTop: 8, fontSize: 11, color: 'var(--gold)', fontWeight: 600 }}>
+          ✓ Selected
+        </div>
+      )}
+    </div>
+  )
 
   const renderWizardStep = () => {
       if (step === 1) {
           return (
               <div className="animate-in">
                   <div className="input-group">
+                      <label className="input-label">Where are you flying from? (Origin)</label>
+                      <input className="input" type="text" placeholder="e.g. London, San Francisco, Chicago" value={originCity} onChange={e => setOriginCity(e.target.value)} />
+                  </div>
+                  <div className="input-group" style={{ marginTop: '1.5rem' }}>
                       <label className="input-label">Where are we going?</label>
                       <select className="select" value={city} onChange={e => setCity(e.target.value)}>
                         {CITIES.map(c => (
@@ -77,7 +263,7 @@ export default function Planner({ onGenerated, itinerary, weather }) {
                         ))}
                       </select>
                   </div>
-                  <div style={{ display: 'flex', gap: 16 }}>
+                  <div style={{ display: 'flex', gap: 16, marginTop: '1.5rem' }}>
                       <div className="input-group" style={{ flex: 1 }}>
                           <label className="input-label">Start Date</label>
                           <input className="input" type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
@@ -86,6 +272,11 @@ export default function Planner({ onGenerated, itinerary, weather }) {
                           <label className="input-label">End Date</label>
                           <input className="input" type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
                       </div>
+                  </div>
+                  <div className="input-group" style={{ marginTop: '1.5rem' }}>
+                      <label className="input-label">Trip Duration (days)</label>
+                      <input className="input" type="number" min={1} max={14} value={duration} onChange={e => setDuration(Math.min(14, Math.max(1, Number(e.target.value) || 1)))} />
+                      <span style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4, display: 'block' }}>Auto-calculated from dates. Max 14 days.</span>
                   </div>
               </div>
           )
@@ -165,6 +356,114 @@ export default function Planner({ onGenerated, itinerary, weather }) {
               </div>
           )
       }
+
+      // Step 5: Flight Selection
+      if (step === 5) {
+          return (
+              <div className="animate-in">
+                  <div style={{ marginBottom: '1.5rem' }}>
+                      <label className="input-label">Select Your Flights</label>
+                      <p style={{ fontSize: 13, color: 'var(--text-dim)', marginTop: 4 }}>
+                        Search for available flights between <strong>{originCity || 'Origin'}</strong> and <strong>{CITIES.find(c=>c.key===city)?.label || city}</strong>
+                      </p>
+                      <button className="btn btn-primary" onClick={handleSearchFlights} disabled={flightLoading} style={{ marginTop: 12, width: '100%' }}>
+                        {flightLoading ? (
+                          <><span className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} /> Searching flights...</>
+                        ) : (
+                          <>🔍 Search Available Flights</>
+                        )}
+                      </button>
+                  </div>
+
+                  {flightError && (
+                    <div className="disruption-banner" style={{ marginBottom: '1rem' }}>
+                      <div className="disruption-icon">⚠️</div>
+                      <div><div className="disruption-text">{flightError}</div></div>
+                    </div>
+                  )}
+
+                  {outboundFlights.length > 0 && (
+                    <div style={{ marginBottom: '1.5rem' }}>
+                      <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 8, color: 'var(--text)' }}>
+                        🛫 Outbound Flights ({originCity} → {CITIES.find(c=>c.key===city)?.label})
+                      </div>
+                      {outboundFlights.map(f => renderFlightCard(
+                        f,
+                        selectedOutbound?.flight_number === f.flight_number && selectedOutbound?.carrier === f.carrier,
+                        setSelectedOutbound
+                      ))}
+                    </div>
+                  )}
+
+                  {returnFlights.length > 0 && (
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 8, color: 'var(--text)' }}>
+                        🛬 Return Flights ({CITIES.find(c=>c.key===city)?.label} → {originCity})
+                      </div>
+                      {returnFlights.map(f => renderFlightCard(
+                        f,
+                        selectedReturn?.flight_number === f.flight_number && selectedReturn?.carrier === f.carrier,
+                        setSelectedReturn
+                      ))}
+                    </div>
+                  )}
+
+                  {(outboundFlights.length > 0 || returnFlights.length > 0) && !selectedOutbound && !selectedReturn && (
+                    <p style={{ fontSize: 12, color: 'var(--text-faint)', textAlign: 'center', marginTop: 12 }}>
+                      Tap a flight card to select it. You can skip flight selection to generate without flights.
+                    </p>
+                  )}
+              </div>
+          )
+      }
+
+      // Step 6: Hotel Selection
+      if (step === 6) {
+          return (
+              <div className="animate-in">
+                  <div style={{ marginBottom: '1.5rem' }}>
+                      <label className="input-label">Select Your Hotel</label>
+                      <p style={{ fontSize: 13, color: 'var(--text-dim)', marginTop: 4 }}>
+                        Search for hotel recommendations in <strong>{CITIES.find(c=>c.key===city)?.label || city}</strong> tailored to a budget of <strong>${budget}</strong>.
+                      </p>
+                      <button className="btn btn-primary" onClick={handleSearchHotels} disabled={hotelLoading} style={{ marginTop: 12, width: '100%' }}>
+                        {hotelLoading ? (
+                          <><span className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} /> Finding top hotels...</>
+                        ) : (
+                          <>🔍 Find Perfect Hotels</>
+                        )}
+                      </button>
+                  </div>
+
+                  {hotelError && (
+                    <div className="disruption-banner" style={{ marginBottom: '1rem' }}>
+                      <div className="disruption-icon">⚠️</div>
+                      <div><div className="disruption-text">{hotelError}</div></div>
+                    </div>
+                  )}
+
+                  {hotels.length > 0 && (
+                    <div style={{ marginBottom: '1.5rem' }}>
+                      <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 8, color: 'var(--text)' }}>
+                        🏨 Top Recommendations based on your budget & mood
+                      </div>
+                      {hotels.map(h => renderHotelCard(
+                        h,
+                        selectedHotel?.id === h.id,
+                        setSelectedHotel
+                      ))}
+                    </div>
+                  )}
+
+                  {hotels.length > 0 && !selectedHotel && (
+                    <p style={{ fontSize: 12, color: 'var(--text-faint)', textAlign: 'center', marginTop: 12 }}>
+                      Tap a hotel card to select it. You can skip to generate without a hotel.
+                    </p>
+                  )}
+              </div>
+          )
+      }
+
       return null
   }
 
@@ -178,12 +477,12 @@ export default function Planner({ onGenerated, itinerary, weather }) {
               </h1>
               
               <div style={{ display: 'flex', gap: 8, marginBottom: '2rem' }}>
-                  {[1, 2, 3, 4].map(s => (
+                  {[1, 2, 3, 4, 5, 6].map(s => (
                       <div key={s} style={{ height: 4, flex: 1, borderRadius: 2, background: step >= s ? 'var(--gold)' : 'var(--surface)' }} />
                   ))}
               </div>
 
-              <div className="planner-form" style={{ minHeight: 300, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <div className="planner-form" style={{ minHeight: 300, display: 'flex', flexDirection: 'column', justifyContent: step >= 5 ? 'flex-start' : 'center' }}>
                   {renderWizardStep()}
               </div>
 
@@ -192,7 +491,7 @@ export default function Planner({ onGenerated, itinerary, weather }) {
                       Back
                   </button>
                   
-                  {step < 4 ? (
+                  {step < 6 ? (
                       <button className="btn btn-primary" onClick={() => setStep(s => s + 1)}>
                           Continue
                       </button>
@@ -273,7 +572,7 @@ export default function Planner({ onGenerated, itinerary, weather }) {
                   {day.slots.map((slot, i) => (
                     <div key={i} style={{ display: 'flex', gap: 12, padding: '0.75rem 0', borderBottom: i < day.slots.length - 1 ? '1px solid var(--border)' : 'none' }}>
                       <div style={{ width: 52, flexShrink: 0, textAlign: 'right' }}>
-                        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--gold)' }}>{slot.start_time}</div>
+                        <div style={{ fontSize: 12, fontWeight: 600, color: slot.metadata?.type === 'flight' ? '#8B5CF6' : 'var(--gold)' }}>{slot.start_time}</div>
                         <div style={{ fontSize: 10, color: 'var(--text-faint)' }}>{slot.end_time}</div>
                       </div>
                       <div style={{ flex: 1 }}>
@@ -286,8 +585,19 @@ export default function Planner({ onGenerated, itinerary, weather }) {
                           <span className="tag tag-gold" style={{ fontSize: 10 }}>{slot.activity.category}</span>
                           {slot.activity.cost > 0 && <span className="tag tag-emerald" style={{ fontSize: 10 }}>${slot.activity.cost}</span>}
                           
-                          {/* Availability Badge */}
-                          {slot.availability_status === 'Available' && (
+                          {slot.metadata?.type === 'flight' && (
+                            <span style={{ fontSize: 10, color: '#8B5CF6', background: 'rgba(139, 92, 246, 0.1)', padding: '2px 6px', borderRadius: 4, border: '1px solid rgba(139, 92, 246, 0.3)' }}>
+                              ✈️ {slot.metadata.carrier} {slot.metadata.flight_number}
+                            </span>
+                          )}
+                          
+                          {slot.metadata?.type === 'hotel' && (
+                            <span style={{ fontSize: 10, color: '#F59E0B', background: 'rgba(245, 158, 11, 0.1)', padding: '2px 6px', borderRadius: 4, border: '1px solid rgba(245, 158, 11, 0.3)' }}>
+                              🏨 Check-in
+                            </span>
+                          )}
+                          
+                          {slot.availability_status === 'Available' && !slot.metadata?.type && (
                               <span style={{ fontSize: 10, color: '#4CC9A0', background: 'rgba(76, 201, 160, 0.1)', padding: '2px 6px', borderRadius: 4 }}>✅ Confirmed</span>
                           )}
                           {slot.availability_status === 'Limited' && (

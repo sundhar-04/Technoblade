@@ -120,13 +120,24 @@ async def _reoptimize(
     weather: dict,
 ) -> dict:
     """Re-optimize itinerary after disruption detected."""
-    weather_ok = not is_rainy(weather)
-    new_plan = await generate_itinerary(request, weather_ok=weather_ok)
+    weather_ok = not is_rainy(weather) and disruption.type != "climate_change"
+    
+    active_req = request.model_copy()
+    if disruption.type == "tired":
+        active_req.pace = "relaxed"
+        
+    new_plan = await generate_itinerary(active_req, weather_ok=weather_ok)
 
     changes = []
     if disruption.type == "weather":
         changes.append("Replaced outdoor activities with indoor alternatives")
         changes.append(f"Adjusted for {weather.get('description', 'bad weather')}")
+    elif disruption.type == "climate_change":
+        changes.append(f"Re-routed itinerary to avoid {weather.get('description', 'extreme weather')} impact areas")
+        changes.append("Prioritized climate-safe indoor venues")
+    elif disruption.type == "tired":
+        changes.append("Dynamically downscaled pace to prioritize rest")
+        changes.append("Filtered out high-energy components and reduced daily load")
     elif disruption.type == "closure":
         changes.append("Removed closed venue and substituted alternatives")
     elif disruption.type == "delay":
@@ -135,8 +146,6 @@ async def _reoptimize(
     reasoning = (
         f"Disruption detected: {disruption.description}. "
         f"Itinerary automatically re-optimized. Changes: {'; '.join(changes)}. "
-        f"The system prioritized {'indoor' if disruption.type == 'weather' else 'accessible'} "
-        f"activities with minimal travel time."
     )
 
     result = AdaptationResponse(
@@ -169,9 +178,16 @@ async def simulate_disruption(sim: SimulateRequest) -> dict:
     # If we have an active request, re-optimize
     if state.current_request:
         weather = state.last_weather or await get_weather(sim.city)
-        # For weather simulation, override weather data
         if sim.disruption_type == "weather":
             weather.update(mock.get("condition_override", {}))
+        elif sim.disruption_type == "climate_change":
+            event_choice = sim.metadata.get("event", "Extreme Heat") if sim.metadata else "Extreme Heat"
+            disruption.description = f"Climate Change Alert: {event_choice} detected."
+            weather["condition"] = "extreme"
+            weather["description"] = event_choice
+        elif sim.disruption_type == "tired":
+            rest_choice = sim.metadata.get("rest", "Need a slower pace") if sim.metadata else "Need a slower pace"
+            disruption.description = f"Traveler Fatigue: You indicated you '{rest_choice}'."
 
         adapted = await _reoptimize(state.current_request, disruption, weather)
         await state.push_event({"type": "disruption", "data": adapted})

@@ -20,6 +20,7 @@ from ..utils.helpers import (
     add_minutes, confidence_from_factors,
 )
 from .availability_service import check_venue_availability
+from .aviation_service import search_flights
 
 
 
@@ -128,6 +129,9 @@ def _select_activities(
 async def generate_itinerary(
     request: PlannerRequest,
     weather_ok: bool = True,
+    selected_outbound: dict = None,
+    selected_return: dict = None,
+    selected_hotel: dict = None,
 ) -> Itinerary:
     """Generate a complete structured itinerary.
 
@@ -260,6 +264,91 @@ async def generate_itinerary(
             total_cost=round(day_cost, 2),
             total_travel_minutes=day_travel,
         ))
+
+    # Inject user-selected flights into the itinerary
+    if selected_outbound and len(days) > 0:
+        try:
+            f_in = selected_outbound
+            arr_act = Activity(
+                id=f"flight_in_{f_in.get('flight_number', '000')}",
+                name=f"✈️ {f_in.get('carrier', 'Airline')} {f_in.get('iata', '')}{f_in.get('flight_number', '')}",
+                category="transport",
+                lat=city_data["center"]["lat"], lng=city_data["center"]["lng"],
+                cost=f_in.get("price", 0), duration_hours=f_in.get("duration_min", 360) / 60.0,
+                popularity=1.0,
+                description=f"{f_in.get('dep_airport', '???')} → {f_in.get('arr_airport', '???')} · ${f_in.get('price', 0)} · {f_in.get('class', 'economy')}",
+                tags=["flight", "outbound"],
+            )
+            dep_time = f_in.get("departure_time", "").split("T")[1][:5] if "T" in f_in.get("departure_time", "") else "07:00"
+            arr_time = f_in.get("arrival_time", "").split("T")[1][:5] if "T" in f_in.get("arrival_time", "") else "13:00"
+            f_slot = TimeSlot(
+                start_time=dep_time, end_time=arr_time,
+                activity=arr_act, availability_status="Confirmed",
+                metadata={"carrier": f_in.get("carrier", ""), "flight_number": f_in.get("flight_number", ""), "type": "flight"}
+            )
+            days[0].slots.insert(0, f_slot)
+            total_budget_used += f_in.get("price", 0)
+            days[0].total_cost += f_in.get("price", 0)
+        except Exception as e:
+            print(f"[ENGINE] Outbound flight injection failed: {e}")
+
+    if selected_return and len(days) > 0:
+        try:
+            f_out = selected_return
+            dep_act = Activity(
+                id=f"flight_out_{f_out.get('flight_number', '000')}",
+                name=f"✈️ {f_out.get('carrier', 'Airline')} {f_out.get('iata', '')}{f_out.get('flight_number', '')}",
+                category="transport",
+                lat=city_data["center"]["lat"], lng=city_data["center"]["lng"],
+                cost=f_out.get("price", 0), duration_hours=f_out.get("duration_min", 360) / 60.0,
+                popularity=1.0,
+                description=f"{f_out.get('dep_airport', '???')} → {f_out.get('arr_airport', '???')} · ${f_out.get('price', 0)} · {f_out.get('class', 'economy')}",
+                tags=["flight", "inbound"],
+            )
+            dep_time2 = f_out.get("departure_time", "").split("T")[1][:5] if "T" in f_out.get("departure_time", "") else "18:00"
+            arr_time2 = f_out.get("arrival_time", "").split("T")[1][:5] if "T" in f_out.get("arrival_time", "") else "23:00"
+            f_slot2 = TimeSlot(
+                start_time=dep_time2, end_time=arr_time2,
+                activity=dep_act, availability_status="Confirmed",
+                metadata={"carrier": f_out.get("carrier", ""), "flight_number": f_out.get("flight_number", ""), "type": "flight"}
+            )
+            days[-1].slots.append(f_slot2)
+            total_budget_used += f_out.get("price", 0)
+            days[-1].total_cost += f_out.get("price", 0)
+        except Exception as e:
+            print(f"[ENGINE] Return flight injection failed: {e}")
+
+    # Inject hotel check-in
+    if selected_hotel and len(days) > 0:
+        try:
+            h = selected_hotel
+            price = h.get("total_price", 0)
+            
+            checkin_act = Activity(
+                id=f"hotel_checkin_{h.get('id', '000')}",
+                name=f"🏨 Check-in: {h.get('name', 'Hotel')}",
+                category="hotel",
+                lat=h.get('lat', city_data["center"]["lat"]),
+                lng=h.get('lng', city_data["center"]["lng"]),
+                cost=price,
+                duration_hours=0.5,
+                popularity=1.0,
+                description=f"{h.get('stars', 3)}★ {h.get('style', 'Hotel')} in {h.get('neighborhood', 'City')}. Total for {h.get('nights', 3)} nights: ${price}",
+                tags=["hotel", "checkin"],
+            )
+            h_slot = TimeSlot(
+                start_time="15:00", end_time="15:30",
+                activity=checkin_act, availability_status="Confirmed",
+                metadata={"hotel_id": h.get("id"), "type": "hotel"}
+            )
+            # Find insertion point sorted by start_time, or simply append
+            days[0].slots.append(h_slot)
+            days[0].slots.sort(key=lambda s: s.start_time)
+            
+            total_budget_used += price
+            days[0].total_cost += price
+        except Exception as e:
+            print(f"[ENGINE] Hotel injection failed: {e}")
 
     # Overall confidence
     all_conf = [s.activity.confidence_score for d in days for s in d.slots]

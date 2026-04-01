@@ -50,6 +50,16 @@ MOCK_DISRUPTIONS = {
         "severity": "medium",
         "description": "Transit delay — estimated 40 min added to travel times in central zone",
     },
+    "climate_change": {
+        "type": "climate_change",
+        "severity": "extreme",
+        "description": "Severe climate event affecting the region.",
+    },
+    "tired": {
+        "type": "tired",
+        "severity": "high",
+        "description": "Traveler fatigue detected; requiring slower pace.",
+    },
 }
 
 

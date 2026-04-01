@@ -23,6 +23,12 @@ async function request(endpoint, options = {}) {
 }
 
 // ── Planner ──
+export const searchFlights = (data) =>
+  request('/planner/search-flights', { method: 'POST', body: data });
+
+export const searchHotels = (data) =>
+  request('/planner/search-hotels', { method: 'POST', body: data });
+
 export const generateItinerary = (data) =>
   request('/planner/generate', { method: 'POST', body: data });
 

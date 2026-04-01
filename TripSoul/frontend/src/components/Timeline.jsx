@@ -26,6 +26,8 @@ export default function Timeline({ itinerary }) {
     nature: '#4CC9A0',
     shopping: '#F59E0B',
     history: '#E05C5C',
+    transport: '#8B5CF6',
+    hotel: '#F59E0B',
   }
 
   return (
@@ -94,6 +96,16 @@ export default function Timeline({ itinerary }) {
                 )}
                 {slot.activity.cost === 0 && (
                   <span className="tag tag-emerald">Free</span>
+                )}
+                {slot.metadata?.carrier && (
+                  <span className="tag" style={{ background: 'var(--surface-high)', color: '#fff', border: '1px solid #8B5CF6' }}>
+                    ✈️ {slot.metadata.carrier}
+                  </span>
+                )}
+                {slot.metadata?.type === 'hotel' && (
+                  <span className="tag" style={{ background: 'var(--surface-high)', color: '#fff', border: '1px solid #F59E0B' }}>
+                    🏨 Check-in
+                  </span>
                 )}
                 <span className={`confidence ${slot.activity.confidence_score > 0.8 ? 'confidence-high' : 'confidence-med'}`}>
                   <span className="confidence-bar" style={{ width: 30 }}>

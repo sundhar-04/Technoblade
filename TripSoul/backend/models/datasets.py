@@ -1,5 +1,5 @@
 """
-Preloaded city datasets for NYC, Tokyo, and Paris.
+Preloaded city datasets for NYC, Tokyo, Paris, London, and Rome.
 Each city has 15+ attractions with real coordinates, cost ranges,
 categories, popularity weights, and weather sensitivity flags.
 """
@@ -77,6 +77,56 @@ CITY_DATA = {
             {"id": "par_14", "name": "Catacombs of Paris", "category": "history", "lat": 48.8338, "lng": 2.3324, "cost": 15.0, "duration_hours": 1.5, "popularity": 0.83, "description": "Underground ossuary holding remains of 6 million Parisians beneath Montparnasse.", "weather_sensitive": False, "opening_hour": 10, "closing_hour": 20},
             {"id": "par_15", "name": "Canal Saint-Martin Stroll", "category": "nature", "lat": 48.8714, "lng": 2.3651, "cost": 0.0, "duration_hours": 1.5, "popularity": 0.79, "description": "Iron footbridges, tree-lined canal, where Amélie skipped stones. Bring wine and cheese.", "weather_sensitive": True, "opening_hour": 7, "closing_hour": 22},
             {"id": "par_16", "name": "Le Comptoir Wine Bar", "category": "nightlife", "lat": 48.8512, "lng": 2.3390, "cost": 35.0, "duration_hours": 2.0, "popularity": 0.80, "description": "Natural wine and small plates in Saint-Germain. Authentic Parisian evening culture.", "weather_sensitive": False, "opening_hour": 18, "closing_hour": 23},
+        ],
+    },
+    "london": {
+        "name": "London",
+        "country": "United Kingdom",
+        "timezone": "Europe/London",
+        "center": {"lat": 51.5074, "lng": -0.1278},
+        "currency": "GBP",
+        "attractions": [
+            {"id": "lon_01", "name": "Tower of London", "category": "history", "lat": 51.5081, "lng": -0.0759, "cost": 33.0, "duration_hours": 3.0, "popularity": 0.96, "description": "900-year-old fortress with Crown Jewels, Beefeaters, and the infamous Traitors' Gate.", "weather_sensitive": False, "opening_hour": 9, "closing_hour": 17},
+            {"id": "lon_02", "name": "British Museum", "category": "culture", "lat": 51.5194, "lng": -0.1270, "cost": 0.0, "duration_hours": 3.0, "popularity": 0.97, "description": "World's greatest collection of human artifacts — Rosetta Stone, Elgin Marbles, Egyptian mummies.", "weather_sensitive": False, "opening_hour": 10, "closing_hour": 17},
+            {"id": "lon_03", "name": "Borough Market", "category": "food", "lat": 51.5054, "lng": -0.0907, "cost": 20.0, "duration_hours": 2.0, "popularity": 0.93, "description": "London's most famous food market since 1276. Artisan cheese, oysters, scotch eggs, sourdough.", "weather_sensitive": False, "opening_hour": 10, "closing_hour": 17},
+            {"id": "lon_04", "name": "Buckingham Palace", "category": "culture", "lat": 51.5014, "lng": -0.1419, "cost": 30.0, "duration_hours": 2.5, "popularity": 0.95, "description": "Official residence of the monarch. Changing of the Guard ceremony at 11am.", "weather_sensitive": True, "opening_hour": 9, "closing_hour": 19},
+            {"id": "lon_05", "name": "Tate Modern", "category": "culture", "lat": 51.5076, "lng": -0.0994, "cost": 0.0, "duration_hours": 2.5, "popularity": 0.91, "description": "Contemporary art powerhouse in a former power station. Turbine Hall installations are epic.", "weather_sensitive": False, "opening_hour": 10, "closing_hour": 18},
+            {"id": "lon_06", "name": "Camden Market", "category": "shopping", "lat": 51.5413, "lng": -0.1463, "cost": 15.0, "duration_hours": 2.0, "popularity": 0.89, "description": "Eclectic market with street food stalls, vintage clothing, and handmade arts by the canal.", "weather_sensitive": False, "opening_hour": 10, "closing_hour": 18},
+            {"id": "lon_07", "name": "Sky Garden", "category": "nature", "lat": 51.5113, "lng": -0.0836, "cost": 0.0, "duration_hours": 1.5, "popularity": 0.87, "description": "Free rooftop garden at 20 Fenchurch Street with panoramic London views and exotic plants.", "weather_sensitive": False, "opening_hour": 10, "closing_hour": 18},
+            {"id": "lon_08", "name": "West End Theatre", "category": "nightlife", "lat": 51.5115, "lng": -0.1280, "cost": 80.0, "duration_hours": 2.5, "popularity": 0.94, "description": "Phantom, Les Mis, Wicked — London's theatre district rivals Broadway.", "weather_sensitive": False, "opening_hour": 19, "closing_hour": 22},
+            {"id": "lon_09", "name": "Tower Bridge Walk", "category": "adventure", "lat": 51.5055, "lng": -0.0754, "cost": 12.0, "duration_hours": 1.5, "popularity": 0.90, "description": "Walk the glass-floored high-level walkway 42m above the Thames.", "weather_sensitive": True, "opening_hour": 10, "closing_hour": 17},
+            {"id": "lon_10", "name": "Hyde Park & Serpentine", "category": "nature", "lat": 51.5073, "lng": -0.1657, "cost": 0.0, "duration_hours": 2.0, "popularity": 0.88, "description": "350-acre Royal Park with Serpentine lake, Diana Memorial, Speakers' Corner.", "weather_sensitive": True, "opening_hour": 5, "closing_hour": 22},
+            {"id": "lon_11", "name": "Churchill War Rooms", "category": "history", "lat": 51.5022, "lng": -0.1291, "cost": 28.0, "duration_hours": 2.0, "popularity": 0.86, "description": "Secret underground WWII command center preserved exactly as Churchill left it.", "weather_sensitive": False, "opening_hour": 9, "closing_hour": 18},
+            {"id": "lon_12", "name": "Brick Lane Curry Walk", "category": "food", "lat": 51.5215, "lng": -0.0718, "cost": 18.0, "duration_hours": 1.5, "popularity": 0.84, "description": "Legendary curry mile in East London — Bangladeshi restaurants, bagels, and street art.", "weather_sensitive": False, "opening_hour": 11, "closing_hour": 22},
+            {"id": "lon_13", "name": "Natural History Museum", "category": "culture", "lat": 51.4967, "lng": -0.1764, "cost": 0.0, "duration_hours": 2.5, "popularity": 0.92, "description": "Free museum with dinosaur skeletons, blue whale skeleton, and earth science galleries.", "weather_sensitive": False, "opening_hour": 10, "closing_hour": 17},
+            {"id": "lon_14", "name": "Shoreditch Street Art Tour", "category": "adventure", "lat": 51.5229, "lng": -0.0777, "cost": 0.0, "duration_hours": 1.5, "popularity": 0.82, "description": "Banksy and beyond — East London's ever-changing outdoor gallery of murals and stencils.", "weather_sensitive": True, "opening_hour": 9, "closing_hour": 20},
+            {"id": "lon_15", "name": "Soho Bar Crawl", "category": "nightlife", "lat": 51.5137, "lng": -0.1344, "cost": 35.0, "duration_hours": 2.5, "popularity": 0.85, "description": "London's legendary nightlife quarter — speakeasy cocktails, rooftop bars, and live music.", "weather_sensitive": False, "opening_hour": 18, "closing_hour": 23},
+            {"id": "lon_16", "name": "Greenwich Observatory", "category": "history", "lat": 51.4769, "lng": -0.0005, "cost": 18.0, "duration_hours": 2.5, "popularity": 0.83, "description": "Stand on the Prime Meridian, see Harrison's marine clocks, and stare at the stars.", "weather_sensitive": True, "opening_hour": 10, "closing_hour": 17},
+        ],
+    },
+    "rome": {
+        "name": "Rome",
+        "country": "Italy",
+        "timezone": "Europe/Rome",
+        "center": {"lat": 41.9028, "lng": 12.4964},
+        "currency": "EUR",
+        "attractions": [
+            {"id": "rom_01", "name": "Colosseum", "category": "history", "lat": 41.8902, "lng": 12.4922, "cost": 18.0, "duration_hours": 2.5, "popularity": 0.99, "description": "The greatest amphitheater ever built — gladiators, emperors, and 50,000 spectators.", "weather_sensitive": True, "opening_hour": 9, "closing_hour": 19},
+            {"id": "rom_02", "name": "Vatican Museums & Sistine Chapel", "category": "culture", "lat": 41.9065, "lng": 12.4536, "cost": 20.0, "duration_hours": 3.5, "popularity": 0.98, "description": "Michelangelo's ceiling, Raphael Rooms, and 2,000 years of papal art collection.", "weather_sensitive": False, "opening_hour": 9, "closing_hour": 18},
+            {"id": "rom_03", "name": "Trevi Fountain", "category": "culture", "lat": 41.9009, "lng": 12.4833, "cost": 0.0, "duration_hours": 1.0, "popularity": 0.96, "description": "Baroque masterpiece — toss a coin over your shoulder for guaranteed return to Rome.", "weather_sensitive": True, "opening_hour": 0, "closing_hour": 23},
+            {"id": "rom_04", "name": "Roman Forum", "category": "history", "lat": 41.8925, "lng": 12.4853, "cost": 18.0, "duration_hours": 2.5, "popularity": 0.94, "description": "Ancient Rome's political center — Senate, temples, triumphal arches spanning 1,000 years.", "weather_sensitive": True, "opening_hour": 9, "closing_hour": 19},
+            {"id": "rom_05", "name": "Trastevere Food Tour", "category": "food", "lat": 41.8870, "lng": 12.4700, "cost": 25.0, "duration_hours": 2.5, "popularity": 0.93, "description": "Rome's most charming neighborhood: supplì, cacio e pepe, pizza al taglio, and gelato.", "weather_sensitive": False, "opening_hour": 11, "closing_hour": 22},
+            {"id": "rom_06", "name": "Pantheon", "category": "history", "lat": 41.8986, "lng": 12.4769, "cost": 5.0, "duration_hours": 1.5, "popularity": 0.95, "description": "2,000-year-old temple with the world's largest unreinforced concrete dome and oculus.", "weather_sensitive": False, "opening_hour": 9, "closing_hour": 19},
+            {"id": "rom_07", "name": "Borghese Gallery", "category": "culture", "lat": 41.9142, "lng": 12.4922, "cost": 15.0, "duration_hours": 2.0, "popularity": 0.91, "description": "Bernini sculptures and Caravaggio paintings in a stunning villa surrounded by gardens.", "weather_sensitive": False, "opening_hour": 9, "closing_hour": 19},
+            {"id": "rom_08", "name": "Piazza Navona", "category": "culture", "lat": 41.8992, "lng": 12.4731, "cost": 0.0, "duration_hours": 1.0, "popularity": 0.89, "description": "Bernini's Fountain of Four Rivers, street artists, and the best outdoor cafe scene.", "weather_sensitive": True, "opening_hour": 0, "closing_hour": 23},
+            {"id": "rom_09", "name": "Testaccio Market", "category": "food", "lat": 41.8768, "lng": 12.4745, "cost": 15.0, "duration_hours": 1.5, "popularity": 0.86, "description": "Authentic Roman food in a covered market — trapizzino, porchetta, fresh pasta.", "weather_sensitive": False, "opening_hour": 7, "closing_hour": 15},
+            {"id": "rom_10", "name": "Villa Borghese Gardens", "category": "nature", "lat": 41.9137, "lng": 12.4856, "cost": 0.0, "duration_hours": 2.0, "popularity": 0.87, "description": "80-hectare park with lake, temple, and the best views over Piazza del Popolo.", "weather_sensitive": True, "opening_hour": 7, "closing_hour": 21},
+            {"id": "rom_11", "name": "Aventine Keyhole", "category": "adventure", "lat": 41.8826, "lng": 12.4795, "cost": 0.0, "duration_hours": 1.0, "popularity": 0.84, "description": "Peek through a keyhole on Aventine Hill for a perfectly framed view of St. Peter's dome.", "weather_sensitive": True, "opening_hour": 7, "closing_hour": 20},
+            {"id": "rom_12", "name": "Aperitivo in Monti", "category": "nightlife", "lat": 41.8964, "lng": 12.4947, "cost": 20.0, "duration_hours": 2.0, "popularity": 0.85, "description": "Rome's coolest neighborhood for sunset cocktails — Ai Tre Scalini, Blackmarket, La Barrique.", "weather_sensitive": False, "opening_hour": 17, "closing_hour": 23},
+            {"id": "rom_13", "name": "Appian Way Bike Ride", "category": "adventure", "lat": 41.8554, "lng": 12.5218, "cost": 10.0, "duration_hours": 3.0, "popularity": 0.82, "description": "Cycle the ancient Roman road past catacombs, aqueducts, and countryside ruins.", "weather_sensitive": True, "opening_hour": 8, "closing_hour": 18},
+            {"id": "rom_14", "name": "Spanish Steps & Caffè Greco", "category": "shopping", "lat": 41.9060, "lng": 12.4829, "cost": 10.0, "duration_hours": 1.5, "popularity": 0.88, "description": "135 travertine steps, Via Condotti luxury shopping, and the oldest café in Rome (1760).", "weather_sensitive": True, "opening_hour": 8, "closing_hour": 21},
+            {"id": "rom_15", "name": "Jazz Night at Alexanderplatz", "category": "nightlife", "lat": 41.9076, "lng": 12.4551, "cost": 15.0, "duration_hours": 2.0, "popularity": 0.80, "description": "Rome's premier jazz club near Vatican — intimate performances and Italian wine.", "weather_sensitive": False, "opening_hour": 20, "closing_hour": 23},
+            {"id": "rom_16", "name": "Capitoline Museums", "category": "culture", "lat": 41.8930, "lng": 12.4829, "cost": 15.0, "duration_hours": 2.0, "popularity": 0.83, "description": "World's oldest public museums on Capitoline Hill — She-Wolf, dying Gaul, Marcus Aurelius.", "weather_sensitive": False, "opening_hour": 9, "closing_hour": 19},
         ],
     },
 }

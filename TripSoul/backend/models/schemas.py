@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 
 class PlannerRequest(BaseModel):
     city: str = Field(..., description="Target city: nyc, tokyo, or paris")
+    origin_city: str = Field(default="", description="Origin city, e.g., 'london', 'sfo' for flights")
     budget: float = Field(..., gt=0, description="Total trip budget in USD")
     duration: int = Field(..., ge=1, le=14, description="Trip duration in days")
     start_date: str = Field(default="", description="e.g. 2026-05-01")
@@ -26,6 +27,36 @@ class PlannerRequest(BaseModel):
         default="balanced",
         description="Travel pace: packed, balanced, or relaxed",
     )
+    selected_flight_outbound: Optional[Dict] = None
+    selected_flight_return: Optional[Dict] = None
+    selected_hotel: Optional[Dict] = None
+
+
+class Hotel(BaseModel):
+    id: str
+    name: str
+    stars: int
+    neighborhood: str
+    lat: float
+    lng: float
+    base_price: float
+    amenities: List[str]
+    style: str
+    rating: float
+    total_price: float
+    nightly_price: float
+    nights: int
+    match_score: float
+    budget_fit: str
+    image_tag: str
+
+
+class HotelSearchRequest(BaseModel):
+    city: str = Field(..., description="Target city")
+    nights: int = Field(default=3, description="Number of nights")
+    budget: float = Field(..., description="Total trip budget for allocation")
+    party_size: str = Field(default="couple")
+    mood: str = Field(default="relaxed")
 
 
 class Activity(BaseModel):
@@ -54,6 +85,7 @@ class TimeSlot(BaseModel):
     travel_distance_km: float = 0.0
     availability_status: str = "Available"
     surge_multiplier: float = 1.0
+    metadata: Dict = Field(default_factory=dict, description="Flight specific data: carrier, flight_number, etc")
 
 
 class DayPlan(BaseModel):
@@ -149,7 +181,8 @@ class PersonalizationResponse(BaseModel):
 class SimulateRequest(BaseModel):
     disruption_type: str = Field(
         default="weather",
-        description="Type: weather, closure, delay"
+        description="Type: weather, closure, delay, climate_change, tired"
     )
     severity: str = Field(default="medium")
     city: str = Field(default="nyc")
+    metadata: Optional[Dict] = Field(default_factory=dict, description="Additional context or answers from the user")
