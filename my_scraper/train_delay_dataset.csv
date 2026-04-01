@@ -1,0 +1,4 @@
+train_num,train_name,station_code,avg_delay,max_delay,route_popularity,time_of_day,day_of_week,season,is_major_station,actual_delay_at_hub
+12651,SAMPARK KRANTI,NZM,13,141,9,2,2,0,1,13
+12641,TIRUKKURAL EXP,AGC,17,234,7,2,2,0,1,17
+16787,TEN SVDK EXP,GWL,20,138,6,2,2,0,1,20

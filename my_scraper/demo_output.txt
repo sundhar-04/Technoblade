@@ -1,0 +1,436 @@
+✅ Loaded 100 records, 10 unique trains
+   Stations: 15 unique
+
+🔧 Training delay prediction model...
+   MAE: 29.2 minutes
+   R²:  -1.637
+   CV MAE: 32.9 ± 6.6 minutes
+
+   Feature Importances:
+     year                 0.610 ████████████████████████
+     train_encoded        0.099 ███
+     source_encoded       0.098 ███
+     scheduled_hour       0.070 ██
+     Distance(Km)         0.068 ██
+     dest_encoded         0.038 █
+     frequency_code       0.017 
+     season_code          0.000 
+
+   💾 Saved: connection_delay_model.pkl
+
+[GRAPH] Route graph: 25 stations with outgoing trains
+   Agra -> New Delhi, Rani Kamlapati
+   Allahabad -> Gorakhpur, Howrah, Kolkata, New Delhi, Pune
+   Chennai -> Dibrugarh, Kanyakumari, Mumbai, Pune, Solapur
+   Chennai Egmore -> Kanyakumari, Madurai, Tirunelveli
+   Dibrugarh -> Chennai, Guwahati, Howrah, Kanyakumari, New Delhi
+   Gorakhpur -> Allahabad, Lucknow, Mumbai, Pune
+   Guwahati -> Dibrugarh, Kanyakumari
+   Howrah -> Allahabad, Dibrugarh, Kanpur, Kanyakumari, New Delhi, Vijayawada, Visakhapatnam, Yesvantpur Jn
+   Jammu -> Lucknow, New Delhi, Varanasi
+   Jhansi -> New Delhi, Rani Kamlapati
+   Kanpur -> Howrah, Kolkata, Lucknow, New Delhi
+   Kanyakumari -> Chennai, Chennai Egmore, Dibrugarh, Guwahati, Howrah, Madurai, New Delhi, Tirunelveli
+   Kolkata -> Allahabad, Kanpur, New Delhi
+   Lucknow -> Gorakhpur, Jammu, Kanpur, New Delhi, Pune, Varanasi
+   Madurai -> Chennai Egmore, Kanyakumari
+   Mumbai -> Chennai, Gorakhpur, Pune, Solapur
+   New Delhi -> Agra, Allahabad, Dibrugarh, Howrah, Jammu, Jhansi, Kanpur, Kanyakumari, Kolkata, Lucknow, Rani Kamlapati, Varanasi
+   Pune -> Allahabad, Chennai, Gorakhpur, Lucknow, Mumbai
+   Rani Kamlapati -> Agra, Jhansi, New Delhi
+   Solapur -> Chennai, Mumbai
+   Tirunelveli -> Chennai Egmore, Kanyakumari
+   Varanasi -> Jammu, Lucknow, New Delhi
+   Vijayawada -> Howrah, Yesvantpur Jn
+   Visakhapatnam -> Howrah, Yesvantpur Jn
+   Yesvantpur Jn -> Howrah, Vijayawada, Visakhapatnam
+
+   Total stations: 25  |  Total route edges: 108
+
+======================================================================
+  RUNNING DEMO SEARCHES
+======================================================================
+
+======================================================================
+  🚂 TRAIN CONNECTIONS: Howrah → New Delhi
+======================================================================
+
+  ┌─── Option 1: DIRECT ────────────────────────────────────────
+  │  Total distance: 1450 km
+  │  Predicted delay: 25 min
+  │
+  │  Train: Rajdhani Express (#12301)
+  │    Howrah → New Delhi
+  │    Scheduled: 10:00:00  |  1450 km
+  │    Avg delay: 38 min  |  Runs: Daliy
+  └─────────────────────────────────────────────────────────────────
+
+  📊 Total options found: 1
+
+======================================================================
+  🚂 TRAIN CONNECTIONS: Varanasi → Pune
+======================================================================
+
+  ┌─── Option 1: CONNECTING (1 change) ────────────────────────────────────────
+  │  Total distance: 1781 km
+  │  Predicted delay: 87 min
+  │  Transfer at: Lucknow
+  │  Wait time: 2.5 hrs ✅
+  │
+  │  Leg 1: Begampura Express (#12238)
+  │    Varanasi → Lucknow
+  │    Scheduled: 03:30:00  |  300 km
+  │    Avg delay: 42 min  |  Runs: Daliy
+  │
+  │  Leg 2: Gorakhpur-pune Weekly Express (#15029)
+  │    Lucknow → Pune
+  │    Scheduled: 06:00:00  |  1481 km
+  │    Avg delay: 48 min  |  Runs: Weekly
+  └─────────────────────────────────────────────────────────────────
+
+  ┌─── Option 2: CONNECTING (2 changes) ────────────────────────────────────────
+  │  Total distance: 2732 km
+  │  Predicted delay: 103 min
+  │  Transfer at: New Delhi → Lucknow
+  │
+  │  Leg 1: Begampura Express (#12238)
+  │    Varanasi → New Delhi
+  │    Scheduled: 06:00:00  |  760 km
+  │    Avg delay: 42 min  |  Runs: Daliy
+  │
+  │  Leg 2: Lucknow Mail (Return) (#12230)
+  │    New Delhi → Lucknow
+  │    Scheduled: 14:00:00  |  491 km
+  │    Avg delay: 26 min  |  Runs: Daliy
+  │
+  │  Leg 3: Gorakhpur-pune Weekly Express (#15029)
+  │    Lucknow → Pune
+  │    Scheduled: 06:00:00  |  1481 km
+  │    Avg delay: 48 min  |  Runs: Weekly
+  └─────────────────────────────────────────────────────────────────
+
+  ┌─── Option 3: CONNECTING (2 changes) ────────────────────────────────────────
+  │  Total distance: 2602 km
+  │  Predicted delay: 117 min
+  │  Transfer at: New Delhi → Allahabad
+  │
+  │  Leg 1: Begampura Express (#12238)
+  │    Varanasi → New Delhi
+  │    Scheduled: 06:00:00  |  760 km
+  │    Avg delay: 42 min  |  Runs: Daliy
+  │
+  │  Leg 2: Garib Rath Express (Return) (#12377)
+  │    New Delhi → Allahabad
+  │    Scheduled: 07:30:00  |  638 km
+  │    Avg delay: 27 min  |  Runs: Tri-Weekly
+  │
+  │  Leg 3: Gorakhpur-pune Weekly Express (#15029)
+  │    Allahabad → Pune
+  │    Scheduled: 08:30:00  |  1204 km
+  │    Avg delay: 48 min  |  Runs: Weekly
+  └─────────────────────────────────────────────────────────────────
+
+  ┌─── Option 4: CONNECTING (2 changes) ────────────────────────────────────────
+  │  Total distance: 3701 km
+  │  Predicted delay: 123 min
+  │  Transfer at: Jammu → Lucknow
+  │
+  │  Leg 1: Begampura Express (#12238)
+  │    Varanasi → Jammu
+  │    Scheduled: 06:30:00  |  1260 km
+  │    Avg delay: 42 min  |  Runs: Daliy
+  │
+  │  Leg 2: Begampura Express (Return) (#12238)
+  │    Jammu → Lucknow
+  │    Scheduled: 05:30:00  |  960 km
+  │    Avg delay: 42 min  |  Runs: Daliy
+  │
+  │  Leg 3: Gorakhpur-pune Weekly Express (#15029)
+  │    Lucknow → Pune
+  │    Scheduled: 06:00:00  |  1481 km
+  │    Avg delay: 48 min  |  Runs: Weekly
+  └─────────────────────────────────────────────────────────────────
+
+  ┌─── Option 5: CONNECTING (2 changes) ────────────────────────────────────────
+  │  Total distance: 2714 km
+  │  Predicted delay: 128 min
+  │  Transfer at: New Delhi → Allahabad
+  │
+  │  Leg 1: Begampura Express (#12238)
+  │    Varanasi → New Delhi
+  │    Scheduled: 06:00:00  |  760 km
+  │    Avg delay: 42 min  |  Runs: Daliy
+  │
+  │  Leg 2: Rajdhani Express (Return) (#12301)
+  │    New Delhi → Allahabad
+  │    Scheduled: 08:00:00  |  750 km
+  │    Avg delay: 38 min  |  Runs: Daliy
+  │
+  │  Leg 3: Gorakhpur-pune Weekly Express (#15029)
+  │    Allahabad → Pune
+  │    Scheduled: 08:30:00  |  1204 km
+  │    Avg delay: 48 min  |  Runs: Weekly
+  └─────────────────────────────────────────────────────────────────
+
+  ┌─── Option 6: CONNECTING (2 changes) ────────────────────────────────────────
+  │  Total distance: 2327 km
+  │  Predicted delay: 174 min
+  │  Transfer at: Lucknow → Gorakhpur
+  │
+  │  Leg 1: Begampura Express (#12238)
+  │    Varanasi → Lucknow
+  │    Scheduled: 03:30:00  |  300 km
+  │    Avg delay: 42 min  |  Runs: Daliy
+  │
+  │  Leg 2: Gorakhpur-pune Weekly Express (Return) (#15029)
+  │    Lucknow → Gorakhpur
+  │    Scheduled: 04:00:00  |  273 km
+  │    Avg delay: 48 min  |  Runs: Weekly
+  │
+  │  Leg 3: Gorakhpur-pune Weekly Express (#15029)
+  │    Gorakhpur → Pune
+  │    Scheduled: 10:00:00  |  1754 km
+  │    Avg delay: 48 min  |  Runs: Weekly
+  └─────────────────────────────────────────────────────────────────
+
+  📊 Total options found: 6
+
+======================================================================
+  🚂 TRAIN CONNECTIONS: Mumbai → Kanyakumari
+======================================================================
+
+  ┌─── Option 1: CONNECTING (1 change) ────────────────────────────────────────
+  │  Total distance: 1982 km
+  │  Predicted delay: 52 min
+  │  Transfer at: Chennai
+  │  Wait time: 41.0 hrs ✅
+  │
+  │  Leg 1: Chennai Express (#12604)
+  │    Mumbai → Chennai
+  │    Scheduled: 09:00:00  |  1284 km
+  │    Avg delay: 38 min  |  Runs: Daliy
+  │
+  │  Leg 2: Vivek Express (#15906)
+  │    Chennai → Kanyakumari
+  │    Scheduled: 50:00:00  |  698 km
+  │    Avg delay: 20 min  |  Runs: Weekly
+  └─────────────────────────────────────────────────────────────────
+
+  ┌─── Option 2: CONNECTING (2 changes) ────────────────────────────────────────
+  │  Total distance: 8982 km
+  │  Predicted delay: 60 min
+  │  Transfer at: Chennai → Dibrugarh
+  │
+  │  Leg 1: Chennai Express (#12604)
+  │    Mumbai → Chennai
+  │    Scheduled: 09:00:00  |  1284 km
+  │    Avg delay: 38 min  |  Runs: Daliy
+  │
+  │  Leg 2: Vivek Express (Return) (#15906)
+  │    Chennai → Dibrugarh
+  │    Scheduled: 48:00:00  |  3500 km
+  │    Avg delay: 20 min  |  Runs: Weekly
+  │
+  │  Leg 3: Vivek Express (#15906)
+  │    Dibrugarh → Kanyakumari
+  │    Scheduled: 19:25:00  |  4198 km
+  │    Avg delay: 20 min  |  Runs: Weekly
+  └─────────────────────────────────────────────────────────────────
+
+  ┌─── Option 3: CONNECTING (2 changes) ────────────────────────────────────────
+  │  Total distance: 1982 km
+  │  Predicted delay: 106 min
+  │  Transfer at: Pune → Chennai
+  │
+  │  Leg 1: Chennai Express (#12604)
+  │    Mumbai → Pune
+  │    Scheduled: 03:00:00  |  192 km
+  │    Avg delay: 38 min  |  Runs: Daliy
+  │
+  │  Leg 2: Chennai Express (#12604)
+  │    Pune → Chennai
+  │    Scheduled: 05:00:00  |  1092 km
+  │    Avg delay: 38 min  |  Runs: Daliy
+  │
+  │  Leg 3: Vivek Express (#15906)
+  │    Chennai → Kanyakumari
+  │    Scheduled: 50:00:00  |  698 km
+  │    Avg delay: 20 min  |  Runs: Weekly
+  └─────────────────────────────────────────────────────────────────
+
+  ┌─── Option 4: CONNECTING (2 changes) ────────────────────────────────────────
+  │  Total distance: 1982 km
+  │  Predicted delay: 112 min
+  │  Transfer at: Solapur → Chennai
+  │
+  │  Leg 1: Chennai Express (#12604)
+  │    Mumbai → Solapur
+  │    Scheduled: 06:00:00  |  456 km
+  │    Avg delay: 38 min  |  Runs: Daliy
+  │
+  │  Leg 2: Chennai Express (#12604)
+  │    Solapur → Chennai
+  │    Scheduled: 08:00:00  |  828 km
+  │    Avg delay: 38 min  |  Runs: Daliy
+  │
+  │  Leg 3: Vivek Express (#15906)
+  │    Chennai → Kanyakumari
+  │    Scheduled: 50:00:00  |  698 km
+  │    Avg delay: 20 min  |  Runs: Weekly
+  └─────────────────────────────────────────────────────────────────
+
+  ┌─── Option 5: CONNECTING (2 changes) ────────────────────────────────────────
+  │  Total distance: 2044 km
+  │  Predicted delay: 123 min
+  │  Transfer at: Pune → Chennai
+  │
+  │  Leg 1: Gorakhpur-pune Weekly Express (#15029)
+  │    Mumbai → Pune
+  │    Scheduled: 16:00:00  |  254 km
+  │    Avg delay: 48 min  |  Runs: Weekly
+  │
+  │  Leg 2: Chennai Express (#12604)
+  │    Pune → Chennai
+  │    Scheduled: 05:00:00  |  1092 km
+  │    Avg delay: 38 min  |  Runs: Daliy
+  │
+  │  Leg 3: Vivek Express (#15906)
+  │    Chennai → Kanyakumari
+  │    Scheduled: 50:00:00  |  698 km
+  │    Avg delay: 20 min  |  Runs: Weekly
+  └─────────────────────────────────────────────────────────────────
+
+  📊 Total options found: 5
+
+======================================================================
+  🚂 TRAIN CONNECTIONS: Chennai Egmore → Kanyakumari
+======================================================================
+
+  ┌─── Option 1: DIRECT ────────────────────────────────────────
+  │  Total distance: 698 km
+  │  Predicted delay: 37 min
+  │
+  │  Train: Vivek Express (#15906)
+  │    Chennai → Kanyakumari
+  │    Scheduled: 50:00:00  |  698 km
+  │    Avg delay: 20 min  |  Runs: Weekly
+  └─────────────────────────────────────────────────────────────────
+
+  📊 Total options found: 1
+
+======================================================================
+  🚂 TRAIN CONNECTIONS: Lucknow → New Delhi
+======================================================================
+
+  ┌─── Option 1: DIRECT ────────────────────────────────────────
+  │  Total distance: 491 km
+  │  Predicted delay: 34 min
+  │
+  │  Train: Lucknow Mail (#12229)
+  │    Lucknow → New Delhi
+  │    Scheduled: 10:00:00  |  491 km
+  │    Avg delay: 26 min  |  Runs: Daliy
+  └─────────────────────────────────────────────────────────────────
+
+  📊 Total options found: 1
+
+======================================================================
+  🚂 TRAIN CONNECTIONS: Kolkata → Chennai
+======================================================================
+
+  ┌─── Option 1: CONNECTING (2 changes) ────────────────────────────────────────
+  │  Total distance: 7018 km
+  │  Predicted delay: 62 min
+  │  Transfer at: New Delhi → Dibrugarh
+  │
+  │  Leg 1: Garib Rath Express (#12377)
+  │    Kolkata → New Delhi
+  │    Scheduled: 08:00:00  |  1318 km
+  │    Avg delay: 27 min  |  Runs: Tri-Weekly
+  │
+  │  Leg 2: Vivek Express (Return) (#15906)
+  │    New Delhi → Dibrugarh
+  │    Scheduled: 24:00:00  |  2200 km
+  │    Avg delay: 20 min  |  Runs: Weekly
+  │
+  │  Leg 3: Vivek Express (#15906)
+  │    Dibrugarh → Chennai
+  │    Scheduled: 48:00:00  |  3500 km
+  │    Avg delay: 20 min  |  Runs: Weekly
+  └─────────────────────────────────────────────────────────────────
+
+  ┌─── Option 2: CONNECTING (2 changes) ────────────────────────────────────────
+  │  Total distance: 4014 km
+  │  Predicted delay: 65 min
+  │  Transfer at: New Delhi → Kanyakumari
+  │
+  │  Leg 1: Garib Rath Express (#12377)
+  │    Kolkata → New Delhi
+  │    Scheduled: 08:00:00  |  1318 km
+  │    Avg delay: 27 min  |  Runs: Tri-Weekly
+  │
+  │  Leg 2: Vivek Express (#15906)
+  │    New Delhi → Kanyakumari
+  │    Scheduled: 26:00:00  |  1998 km
+  │    Avg delay: 20 min  |  Runs: Weekly
+  │
+  │  Leg 3: Vivek Express (Return) (#15906)
+  │    Kanyakumari → Chennai
+  │    Scheduled: 50:00:00  |  698 km
+  │    Avg delay: 20 min  |  Runs: Weekly
+  └─────────────────────────────────────────────────────────────────
+
+  ┌─── Option 3: CONNECTING (2 changes) ────────────────────────────────────────
+  │  Total distance: 2976 km
+  │  Predicted delay: 97 min
+  │  Transfer at: Allahabad → Pune
+  │
+  │  Leg 1: Garib Rath Express (#12377)
+  │    Kolkata → Allahabad
+  │    Scheduled: 05:30:00  |  680 km
+  │    Avg delay: 27 min  |  Runs: Tri-Weekly
+  │
+  │  Leg 2: Gorakhpur-pune Weekly Express (#15029)
+  │    Allahabad → Pune
+  │    Scheduled: 08:30:00  |  1204 km
+  │    Avg delay: 48 min  |  Runs: Weekly
+  │
+  │  Leg 3: Chennai Express (#12604)
+  │    Pune → Chennai
+  │    Scheduled: 05:00:00  |  1092 km
+  │    Avg delay: 38 min  |  Runs: Daliy
+  └─────────────────────────────────────────────────────────────────
+
+  📊 Total options found: 3
+
+======================================================================
+  🚂 TRAIN CONNECTIONS: Varanasi → New Delhi
+======================================================================
+
+  ┌─── Option 1: DIRECT ────────────────────────────────────────
+  │  Total distance: 760 km
+  │  Predicted delay: 41 min
+  │
+  │  Train: Begampura Express (#12238)
+  │    Varanasi → New Delhi
+  │    Scheduled: 06:00:00  |  760 km
+  │    Avg delay: 42 min  |  Runs: Daliy
+  └─────────────────────────────────────────────────────────────────
+
+  📊 Total options found: 1
+
+======================================================================
+  🚂 TRAIN CONNECTIONS: Howrah → Kanyakumari
+======================================================================
+
+  ┌─── Option 1: DIRECT ────────────────────────────────────────
+  │  Total distance: 3148 km
+  │  Predicted delay: 18 min
+  │
+  │  Train: Vivek Express (#15906)
+  │    Howrah → Kanyakumari
+  │    Scheduled: 14:00:00  |  3148 km
+  │    Avg delay: 20 min  |  Runs: Weekly
+  └─────────────────────────────────────────────────────────────────
+
+  📊 Total options found: 1
