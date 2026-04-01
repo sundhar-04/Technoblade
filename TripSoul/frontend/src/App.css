@@ -535,3 +535,476 @@ input[type="range"]::-webkit-slider-thumb:hover {
   .planner-form { grid-template-columns: 1fr 1fr; }
   .optimizer-layout { grid-template-columns: 1fr; }
 }
+
+/* ═══════════════════════════════════════════════════════
+   DRAG-AND-DROP TIMELINE — Interactive Itinerary Builder
+   ═══════════════════════════════════════════════════════ */
+
+/* ── Draggable items ── */
+.tl-drag-container {
+  position: relative;
+}
+
+.tl-draggable {
+  position: relative;
+  cursor: grab;
+  transition: all 0.25s var(--ease);
+  border-radius: var(--radius-md);
+  padding-left: 28px !important;
+  padding-right: 36px !important;
+  margin-left: -8px;
+  margin-right: -8px;
+}
+
+.tl-draggable:hover {
+  background: rgba(232, 168, 56, 0.03);
+}
+
+.tl-draggable:active {
+  cursor: grabbing;
+}
+
+/* Drag handle */
+.tl-drag-handle {
+  position: absolute;
+  left: 4px;
+  top: 1rem;
+  font-size: 14px;
+  color: var(--text-faint);
+  cursor: grab;
+  transition: color 0.2s, transform 0.2s;
+  user-select: none;
+  line-height: 1;
+  padding: 4px 2px;
+  z-index: 2;
+}
+
+.tl-draggable:hover .tl-drag-handle {
+  color: var(--gold);
+  transform: scale(1.1);
+}
+
+/* Dragging state */
+.timeline-item-dragging {
+  opacity: 0.4 !important;
+  background: var(--gold-dim) !important;
+  border: 1.5px dashed var(--gold) !important;
+  border-radius: var(--radius-md) !important;
+  transform: scale(0.98) !important;
+}
+
+/* ── Drop zone indicators ── */
+.timeline-drop-zone {
+  position: relative;
+  height: 4px;
+  margin: 2px 0;
+  transition: all 0.2s var(--ease);
+}
+
+.timeline-drop-active {
+  height: 40px;
+  margin: 4px 0;
+}
+
+.drop-zone-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  background: var(--gold);
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  box-shadow: 0 0 12px rgba(232, 168, 56, 0.4);
+}
+
+.timeline-drop-active .drop-zone-line {
+  opacity: 1;
+}
+
+.drop-zone-label {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+  background: var(--bg);
+  padding: 2px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--gold-border);
+  white-space: nowrap;
+}
+
+/* ── Delete button ── */
+.tl-delete-btn {
+  position: absolute;
+  top: 0.75rem;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-faint);
+  font-size: 16px;
+  font-weight: 300;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s var(--ease);
+  opacity: 0;
+  z-index: 3;
+}
+
+.tl-draggable:hover .tl-delete-btn {
+  opacity: 1;
+}
+
+.tl-delete-btn:hover {
+  background: var(--red-dim);
+  border-color: rgba(224, 92, 92, 0.3);
+  color: var(--red);
+  transform: scale(1.15);
+}
+
+/* ── Inline time editing ── */
+.tl-time-clickable {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 6px;
+  margin: -2px -6px;
+  border-radius: var(--radius-sm);
+  transition: background 0.2s;
+}
+
+.tl-time-clickable:hover {
+  background: rgba(232, 168, 56, 0.08);
+}
+
+.tl-edit-hint {
+  font-size: 10px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  color: var(--gold);
+}
+
+.tl-time-clickable:hover .tl-edit-hint {
+  opacity: 0.7;
+}
+
+.tl-time-editor {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.time-input {
+  background: var(--bg-surface);
+  border: 1.5px solid var(--gold-border);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gold);
+  outline: none;
+  width: 90px;
+  transition: border-color 0.2s;
+}
+
+.time-input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px rgba(232, 168, 56, 0.15);
+}
+
+.tl-time-done {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--gold);
+  color: var(--bg);
+  border: none;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s var(--spring);
+}
+
+.tl-time-done:hover {
+  transform: scale(1.1);
+}
+
+/* ═══════════════════════════════════════════════════════
+   ADD PLACE PANEL — AI Suggestions + Manual Entry
+   ═══════════════════════════════════════════════════════ */
+
+.tl-add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px 20px;
+  margin-top: 1rem;
+  background: rgba(232, 168, 56, 0.06);
+  border: 1.5px dashed var(--gold-border);
+  border-radius: var(--radius-lg);
+  color: var(--gold);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 0.25s var(--ease);
+}
+
+.tl-add-btn:hover {
+  background: rgba(232, 168, 56, 0.1);
+  border-color: var(--gold);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(232, 168, 56, 0.12);
+}
+
+.add-place-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  margin-top: 0.75rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.add-place-panel::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(to bottom, var(--gold), var(--emerald));
+  border-radius: 3px 0 0 3px;
+}
+
+.add-place-section {
+  margin-bottom: 1rem;
+}
+
+.add-place-section-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 0.75rem;
+}
+
+.add-place-ai-icon {
+  font-size: 14px;
+}
+
+.add-place-search {
+  width: 100%;
+  background: var(--bg-surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s var(--ease), box-shadow 0.2s;
+}
+
+.add-place-search::placeholder {
+  color: var(--text-faint);
+}
+
+.add-place-search:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(232, 168, 56, 0.1);
+}
+
+.add-place-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 1rem 0;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* ── AI Suggestion Cards ── */
+.ai-suggestions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 0.75rem;
+}
+
+.ai-suggestion-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-body);
+  transition: all 0.25s var(--ease);
+  position: relative;
+  overflow: hidden;
+}
+
+.ai-suggestion-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(232, 168, 56, 0.06) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+
+.ai-suggestion-card:hover {
+  border-color: var(--gold-border);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.ai-suggestion-card:hover::before {
+  opacity: 1;
+}
+
+.ai-sug-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.ai-sug-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.3;
+}
+
+.ai-sug-cost {
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.ai-sug-desc {
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.5;
+  margin-bottom: 6px;
+}
+
+.ai-sug-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.ai-sug-reason {
+  font-size: 10px;
+  color: var(--text-faint);
+  margin-top: 6px;
+  font-style: italic;
+  line-height: 1.4;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+}
+
+/* ── Divider ── */
+.add-place-divider {
+  position: relative;
+  text-align: center;
+  margin: 1.25rem 0;
+}
+
+.add-place-divider::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: var(--border);
+}
+
+.add-place-divider span {
+  position: relative;
+  background: var(--bg-card);
+  padding: 0 14px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+/* ── Manual Entry Form ── */
+.manual-entry-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.manual-entry-row {
+  display: flex;
+  gap: 12px;
+}
+
+.manual-entry-form .btn-primary {
+  width: 100%;
+  justify-content: center;
+  padding: 12px 20px;
+  font-size: 14px;
+}
+
+.manual-entry-form .btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ── Responsive for new Timeline features ── */
+@media (max-width: 768px) {
+  .ai-suggestions-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .manual-entry-row {
+    flex-direction: column;
+  }
+
+  .tl-draggable {
+    padding-left: 24px !important;
+    padding-right: 30px !important;
+  }
+
+  .tl-delete-btn {
+    opacity: 1;
+  }
+}
+
