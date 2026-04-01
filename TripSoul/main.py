@@ -23,6 +23,7 @@ DEV_MODE = False
 _cache: dict = {}
 _handbook_cache: dict = {}
 
+
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
