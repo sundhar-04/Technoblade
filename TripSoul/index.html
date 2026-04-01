@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TripSoul — Travel That Understands You</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<section class="screen" id="screen-landing">
+  <div class="landing-eyebrow"><span></span>AI-powered travel intelligence</div>
+  <h1 class="landing-title">Travel that<br/><em>understands you</em></h1>
+  <p class="landing-sub">Not where to go — but why. TripSoul reads your mood, maps your journey, and handles everything in between.</p>
+  <button class="btn-primary" onclick="startJourney()">
+    Begin your journey
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+  <div class="landing-stats">
+    <div class="stat-item"><div class="stat-num">10K+</div><div class="stat-label">Routes mapped</div></div>
+    <div class="stat-item"><div class="stat-num">500+</div><div class="stat-label">Destinations</div></div>
+    <div class="stat-item"><div class="stat-num">9</div><div class="stat-label">Smart questions</div></div>
+  </div>
+  <div class="landing-scroll-hint"><div class="scroll-line"></div>scroll</div>
+</section>
+
+<section class="screen hidden" id="screen-quiz">
+  <div class="mobile-quiz-header">
+    <div class="mobile-logo">Trip<span>Soul</span></div>
+    <div class="mobile-progress" id="mobile-progress-label">1 / 10</div>
+  </div>
+  <div class="quiz-layout">
+    <aside class="quiz-sidebar">
+      <div class="sidebar-logo">Trip<span>Soul</span></div>
+      <div class="sidebar-progress-label">Your progress</div>
+      <div class="sidebar-progress-track"><div class="sidebar-progress-fill" id="sidebar-fill"></div></div>
+      <div class="sidebar-steps" id="sidebar-steps"></div>
+    </aside>
+    <main class="quiz-main" id="quiz-main-area"></main>
+  </div>
+</section>
+
+<section class="screen hidden" id="screen-loading">
+  <div class="loading-icon"></div>
+  <div class="loading-title">Reading your soul…</div>
+  <div class="loading-sub">Our AI is matching your mood to the perfect destinations.</div>
+  <div class="loading-steps">
+    <div class="loading-step" id="lstep-0"><div class="loading-step-dot"></div>Analysing your travel personality</div>
+    <div class="loading-step" id="lstep-1"><div class="loading-step-dot"></div>Matching mood to destinations</div>
+    <div class="loading-step" id="lstep-2"><div class="loading-step-dot"></div>Checking route logistics</div>
+    <div class="loading-step" id="lstep-3"><div class="loading-step-dot"></div>Building your itinerary</div>
+  </div>
+</section>
+
+<section class="screen hidden" id="screen-results">
+  <div class="results-header">
+    <div class="results-eyebrow">Your perfect matches</div>
+    <h2 class="results-title">Here's where your <em>soul wants to go</em></h2>
+    <p class="results-sub">Based on your mood and travel style</p>
+  </div>
+
+  <!-- Soul panel -->
+  <div class="soul-panel" id="soul-panel">
+    <div class="soul-panel-header">
+      <div class="soul-icon">🧠</div>
+      <div>
+        <div class="soul-panel-label">Why these places fit you</div>
+        <div class="soul-panel-sub">TripSoul's read on your travel personality</div>
+      </div>
+    </div>
+    <div class="soul-explanation" id="soul-explanation-text"></div>
+    <div class="soul-traits" id="soul-traits"></div>
+  </div>
+
+  <div class="results-grid" id="results-grid"></div>
+
+  <div class="results-actions">
+    <button class="btn-outline" onclick="restartQuiz()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7a5 5 0 1 0 1.5-3.5L1 1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M1 1v3h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Start over
+    </button>
+    <button class="btn-outline" onclick="refineResults()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 4h12M3 7h8M5 10h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      Different suggestions
+    </button>
+    <button class="btn-primary" style="font-size:14px;padding:12px 24px;" onclick="planTrip()">
+      Plan this trip
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+</section>
+
+<script src="script.js"></script>
+</body>
+</html>
