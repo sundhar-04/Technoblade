@@ -18,7 +18,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 
-from .routers import planner, personalization, optimization, prediction, adaptation
+from .routers import planner, personalization, optimization, prediction, adaptation, recommend
 from .services.adaptation_loop import start_adaptation_loop, stop_adaptation_loop
 from .models.datasets import get_available_cities
 
@@ -57,6 +57,7 @@ app.include_router(personalization.router)
 app.include_router(optimization.router)
 app.include_router(prediction.router)
 app.include_router(adaptation.router)
+app.include_router(recommend.router)
 
 
 @app.get("/")
@@ -106,7 +107,7 @@ class PlaceSuggestionRequest(BaseModel):
 async def suggest_places(req: PlaceSuggestionRequest):
     from .models.datasets import get_city_data
     try:
-        city_data = get_city_data(req.city)
+        city_data = await get_city_data(req.city)
         attractions = city_data["attractions"]
     except KeyError:
         attractions = []

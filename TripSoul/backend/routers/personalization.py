@@ -20,7 +20,7 @@ async def track(feedback: UserFeedback):
     """
     # Look up the activity to get its category
     for city_key in ("nyc", "tokyo", "paris"):
-        city_data = get_city_data(city_key)
+        city_data = await get_city_data(city_key)
         for att in city_data.get("attractions", []):
             if att["id"] == feedback.activity_id:
                 return track_feedback(feedback, att)
@@ -37,7 +37,7 @@ async def recommendations(user_id: str, city: str = "nyc", count: int = 5):
     and activity category vectors. Each recommendation includes
     a human-readable explanation like 'Recommended because you liked X'.
     """
-    city_data = get_city_data(city)
+    city_data = await get_city_data(city)
     attractions = city_data.get("attractions", [])
 
     recs = get_recommendations(user_id, attractions, count)

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { generateItinerary, searchFlights, searchHotels } from '../api/client'
 
 const CITIES = [
@@ -13,19 +13,74 @@ const MOODS = ['relaxed', 'energetic', 'romantic', 'family']
 const PARTY_SIZES = ['solo', 'couple', 'family', 'group']
 const DIETARY = ['any', 'vegetarian', 'vegan', 'halal']
 
-export default function Planner({ onGenerated, itinerary, weather }) {
+// Maps quiz answers to Planner state values
+function mapQuizToPlanner(quizAnswers) {
+  if (!quizAnswers || Object.keys(quizAnswers).length === 0) return null
+
+  const whoMap = { 'Solo escape': 'solo', 'Couple': 'couple', 'Friends': 'group', 'Family': 'family', 'With pets': 'couple', 'Group / Team': 'group' }
+  const moodMap = { 'Adventure': 'energetic', 'Relaxation': 'relaxed', 'Cultural': 'relaxed', 'Party & Fun': 'energetic', 'Romantic': 'romantic', 'Wellness & Detox': 'relaxed', 'Surprise me': 'relaxed' }
+  const paceMap = { 'Fast & packed': 'packed', 'Balanced': 'balanced', 'Slow & easy': 'relaxed', 'Immersive': 'relaxed' }
+  const durationMap = { 'Weekend (2–3 days)': 3, 'Short trip (4–6 days)': 5, '1 week': 7, '2 weeks': 14, '1 month+': 14 }
+  const foodMap = { 'Vegetarian': 'vegetarian', 'Non-veg': 'any', 'Seafood': 'any', 'Vegan': 'vegan', 'Jain / No onion-garlic': 'vegetarian', 'Street food': 'any', 'Local cuisine': 'any', 'International': 'any' }
+
+  const who = (quizAnswers.who || [])[0] || ''
+  const qMood = (quizAnswers.mood || [])[0] || ''
+  const qPace = (quizAnswers.pace || [])[0] || ''
+  const qDuration = (quizAnswers.duration || [])[0] || ''
+  const qFood = (quizAnswers.food || [])[0] || ''
+
+  // Map quiz interests to planner interests
+  const interestMap = { 'Adventure': 'adventure', 'Cultural': 'culture', 'Relaxation': 'nature', 'Party & Fun': 'nightlife', 'Romantic': 'culture', 'Wellness & Detox': 'nature', 'Surprise me': 'culture' }
+  const sceneryMap = { 'Beaches': 'nature', 'Mountains': 'adventure', 'Forests': 'nature', 'Cities': 'shopping', 'Countryside': 'nature', 'Heritage': 'history', 'Deserts': 'adventure', 'Waterfalls': 'nature' }
+
+  const mappedInterests = new Set()
+  ;(quizAnswers.mood || []).forEach(m => { if (interestMap[m]) mappedInterests.add(interestMap[m]) })
+  ;(quizAnswers.scenery || []).forEach(s => { if (sceneryMap[s]) mappedInterests.add(sceneryMap[s]) })
+  if (mappedInterests.size === 0) { mappedInterests.add('culture'); mappedInterests.add('food') }
+
+  return {
+    partySize: whoMap[who] || 'couple',
+    mood: moodMap[qMood] || 'relaxed',
+    pace: paceMap[qPace] || 'balanced',
+    duration: durationMap[qDuration] || 3,
+    dietary: foodMap[qFood] || 'any',
+    interests: [...mappedInterests],
+    budget: (quizAnswers.style || ['Comfortable'])[0] === 'Backpacker' ? 300 : (quizAnswers.style || [])[0] === 'Luxury' ? 2000 : 800,
+  }
+}
+
+export default function Planner({ onGenerated, itinerary, weather, quizAnswers, selectedDestination }) {
+  const hasQuiz = quizAnswers && Object.keys(quizAnswers).length > 0
+  const mapped = hasQuiz ? mapQuizToPlanner(quizAnswers) : null
+  const initializedRef = useRef(false)
+
+  // Start at step 1 (origin/dates) — skip steps 2-4 when quiz data is present
   const [step, setStep] = useState(1)
   const [originCity, setOriginCity] = useState('')
-  const [city, setCity] = useState('nyc')
+  const [city, setCity] = useState(selectedDestination || 'nyc')
+  
+  // Create a dynamic list of cities that includes the selected destination from the quiz
+  const dynamicCities = [...CITIES]
+  if (selectedDestination && !dynamicCities.find(c => c.key === selectedDestination)) {
+    dynamicCities.unshift({ key: selectedDestination, label: selectedDestination, icon: '📍' })
+  }
+  
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
-  const [duration, setDuration] = useState(3)
-  const [budget, setBudget] = useState(500)
-  const [partySize, setPartySize] = useState('couple')
-  const [mood, setMood] = useState('relaxed')
-  const [dietary, setDietary] = useState('any')
-  const [interests, setInterests] = useState(['culture', 'food'])
-  const [pace, setPace] = useState('balanced')
+  const [duration, setDuration] = useState(mapped?.duration || 3)
+  const [budget, setBudget] = useState(mapped?.budget || 500)
+  const [partySize, setPartySize] = useState(mapped?.partySize || 'couple')
+  const [mood, setMood] = useState(mapped?.mood || 'relaxed')
+  const [dietary, setDietary] = useState(mapped?.dietary || 'any')
+  const [interests, setInterests] = useState(mapped?.interests || ['culture', 'food'])
+  const [pace, setPace] = useState(mapped?.pace || 'balanced')
+
+  // Set city when selectedDestination changes
+  useEffect(() => {
+    if (selectedDestination) {
+      setCity(selectedDestination)
+    }
+  }, [selectedDestination])
   
   // Flight selection state
   const [outboundFlights, setOutboundFlights] = useState([])
@@ -258,7 +313,7 @@ export default function Planner({ onGenerated, itinerary, weather }) {
                   <div className="input-group" style={{ marginTop: '1.5rem' }}>
                       <label className="input-label">Where are we going?</label>
                       <select className="select" value={city} onChange={e => setCity(e.target.value)}>
-                        {CITIES.map(c => (
+                        {dynamicCities.map(c => (
                           <option key={c.key} value={c.key}>{c.icon} {c.label}</option>
                         ))}
                       </select>
@@ -364,7 +419,7 @@ export default function Planner({ onGenerated, itinerary, weather }) {
                   <div style={{ marginBottom: '1.5rem' }}>
                       <label className="input-label">Select Your Flights</label>
                       <p style={{ fontSize: 13, color: 'var(--text-dim)', marginTop: 4 }}>
-                        Search for available flights between <strong>{originCity || 'Origin'}</strong> and <strong>{CITIES.find(c=>c.key===city)?.label || city}</strong>
+                        Search for available flights between <strong>{originCity || 'Origin'}</strong> and <strong>{dynamicCities.find(c=>c.key===city)?.label || city}</strong>
                       </p>
                       <button className="btn btn-primary" onClick={handleSearchFlights} disabled={flightLoading} style={{ marginTop: 12, width: '100%' }}>
                         {flightLoading ? (
@@ -385,7 +440,7 @@ export default function Planner({ onGenerated, itinerary, weather }) {
                   {outboundFlights.length > 0 && (
                     <div style={{ marginBottom: '1.5rem' }}>
                       <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 8, color: 'var(--text)' }}>
-                        🛫 Outbound Flights ({originCity} → {CITIES.find(c=>c.key===city)?.label})
+                        🛫 Outbound Flights ({originCity} → {dynamicCities.find(c=>c.key===city)?.label || city})
                       </div>
                       {outboundFlights.map(f => renderFlightCard(
                         f,
@@ -398,7 +453,7 @@ export default function Planner({ onGenerated, itinerary, weather }) {
                   {returnFlights.length > 0 && (
                     <div>
                       <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 8, color: 'var(--text)' }}>
-                        🛬 Return Flights ({CITIES.find(c=>c.key===city)?.label} → {originCity})
+                        🛬 Return Flights ({dynamicCities.find(c=>c.key===city)?.label || city} → {originCity})
                       </div>
                       {returnFlights.map(f => renderFlightCard(
                         f,
@@ -487,12 +542,12 @@ export default function Planner({ onGenerated, itinerary, weather }) {
               </div>
 
               <div className="planner-actions" style={{ marginTop: '2rem', display: 'flex', justifyContent: 'space-between' }}>
-                  <button className="btn btn-secondary" disabled={step === 1 || loading} onClick={() => setStep(s => s - 1)}>
+                  <button className="btn btn-secondary" disabled={step === 1 || loading} onClick={() => setStep(s => hasQuiz && s === 5 ? 1 : s - 1)}>
                       Back
                   </button>
                   
                   {step < 6 ? (
-                      <button className="btn btn-primary" onClick={() => setStep(s => s + 1)}>
+                      <button className="btn btn-primary" onClick={() => setStep(s => hasQuiz && s === 1 ? 5 : s + 1)}>
                           Continue
                       </button>
                   ) : (

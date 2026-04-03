@@ -69,7 +69,7 @@ def _price_for_nights(base_price: float, nights: int, party_size: str, mood: str
     return round(nightly * nights, 2)
 
 
-def search_hotels(
+async def search_hotels(
     city: str,
     nights: int = 3,
     budget: float = 500,
@@ -84,7 +84,23 @@ def search_hotels(
     - Mood alignment
     """
     city_key = city.lower().strip()
-    hotels = HOTEL_DATABASE.get(city_key, HOTEL_DATABASE.get("nyc", []))
+    
+    if city_key in HOTEL_DATABASE:
+        hotels = HOTEL_DATABASE[city_key]
+    else:
+        # Dynamic fallback generic hotels tailored to the city name
+        from ..models.datasets import get_city_data
+        city_data = await get_city_data(city)
+        lat = city_data.get("center", {}).get("lat", 0.0)
+        lng = city_data.get("center", {}).get("lng", 0.0)
+        cname = city.title()
+        
+        hotels = [
+            {"id": f"htl_{city_key}_01", "name": f"The Grand {cname}", "stars": 5, "neighborhood": "City Center", "lat": lat + 0.005, "lng": lng + 0.005, "base_price": 250, "amenities": ["spa", "pool", "restaurant"], "style": "luxury", "rating": 4.6, "image_tag": "luxury-downtown"},
+            {"id": f"htl_{city_key}_02", "name": f"{cname} Boutique Stay", "stars": 4, "neighborhood": "Old Town", "lat": lat - 0.005, "lng": lng - 0.005, "base_price": 120, "amenities": ["cultural tours", "breakfast"], "style": "boutique", "rating": 4.5, "image_tag": "marais-boutique"},
+            {"id": f"htl_{city_key}_03", "name": f"Backpacker {cname}", "stars": 2, "neighborhood": "Backpacker District", "lat": lat + 0.01, "lng": lng - 0.01, "base_price": 30, "amenities": ["wifi", "bar", "lounge"], "style": "hostel", "rating": 4.1, "image_tag": "generator-hostel"},
+            {"id": f"htl_{city_key}_04", "name": f"{cname} City Hotel", "stars": 3, "neighborhood": "Downtown", "lat": lat - 0.01, "lng": lng + 0.01, "base_price": 80, "amenities": ["gym", "cafe"], "style": "modern", "rating": 4.2, "image_tag": "citizenm-modern"},
+        ]
 
     # Budget allocated to accommodation (~35% of total trip budget)
     hotel_budget = budget * 0.35

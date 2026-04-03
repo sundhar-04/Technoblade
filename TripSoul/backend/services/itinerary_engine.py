@@ -137,7 +137,7 @@ async def generate_itinerary(
 
     Returns day → time slots → activity → travel time → cost → confidence.
     """
-    city_data = get_city_data(request.city)
+    city_data = await get_city_data(request.city)
     attractions = city_data["attractions"]
     slots_per_day = PACE_SLOTS.get(request.pace, 3)
     budget_per_day = request.budget / max(request.duration, 1)
@@ -375,7 +375,7 @@ async def replan_itinerary(
     Removes disrupted activities, replaces with weather-appropriate alternatives.
     """
     # Rebuild with disrupted activities excluded
-    city_data = get_city_data(request.city)
+    city_data = await get_city_data(request.city)
     new_request = request.model_copy()
     return await generate_itinerary(new_request, weather_ok=weather_ok)
 

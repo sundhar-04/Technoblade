@@ -1008,3 +1008,335 @@ input[type="range"]::-webkit-slider-thumb:hover {
   }
 }
 
+
+/* ═══════════════════════════════════════════════════════════════
+   TRIPSOUL LANDING / QUIZ / RESULTS — Ported from pr_05
+   All classes prefixed with ts- to avoid conflicts
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Landing ── */
+.ts-landing {
+  position: relative; z-index: 1;
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 2rem 1.25rem;
+  text-align: center; gap: 0;
+  background: var(--bg);
+}
+
+.landing-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 11px; font-weight: 500; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--gold);
+  border: 1px solid var(--gold-border); border-radius: 999px;
+  padding: 6px 16px; margin-bottom: 2rem;
+  animation: fadeUp 0.8s ease both;
+}
+.landing-eyebrow span {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--gold); animation: ts-pulse 2s ease infinite;
+}
+
+.landing-title {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 8vw, 5.5rem); font-weight: 700;
+  line-height: 1.05; color: var(--text); margin-bottom: 0.5rem;
+  animation: fadeUp 0.8s 0.1s ease both;
+}
+.landing-title em { font-style: italic; color: var(--gold); }
+
+.landing-sub {
+  font-size: clamp(1rem, 2.5vw, 1.2rem); font-weight: 300;
+  color: var(--text-dim); max-width: 480px;
+  margin: 0 auto 2.5rem; line-height: 1.7;
+  animation: fadeUp 0.8s 0.2s ease both;
+}
+
+.ts-btn-primary {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: var(--gold); color: var(--bg);
+  font-family: var(--font-body); font-size: 1rem; font-weight: 500;
+  padding: 16px 36px; border-radius: 999px; border: none;
+  cursor: pointer; transition: all 0.3s var(--ease);
+  animation: fadeUp 0.8s 0.3s ease both; text-decoration: none;
+}
+.ts-btn-primary:hover {
+  background: var(--gold-light); transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(232,168,56,0.3);
+}
+.ts-btn-primary svg { transition: transform 0.3s var(--ease); }
+.ts-btn-primary:hover svg { transform: translateX(4px); }
+
+.landing-stats {
+  display: flex; gap: 2.5rem; margin-top: 3.5rem;
+  animation: fadeUp 0.8s 0.4s ease both;
+}
+.stat-item { text-align: center; }
+.stat-num { font-family: var(--font-display); font-size: 1.6rem; font-weight: 600; color: var(--gold); }
+.stat-label { font-size: 11px; letter-spacing: 0.1em; color: var(--text-dim); text-transform: uppercase; margin-top: 2px; }
+
+.landing-scroll-hint {
+  position: absolute; bottom: 2rem;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  font-size: 11px; color: var(--text-dim); letter-spacing: 0.1em;
+  text-transform: uppercase; animation: fadeUp 1s 0.8s ease both;
+}
+.scroll-line {
+  width: 1px; height: 40px;
+  background: linear-gradient(to bottom, var(--gold), transparent);
+  animation: ts-scrollLine 2s ease infinite;
+}
+
+/* ── Quiz ── */
+.ts-quiz-screen {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  background: var(--bg);
+  position: relative; z-index: 1;
+}
+
+.ts-quiz-layout {
+  display: grid; grid-template-columns: 280px 1fr;
+  min-height: 100vh; width: 100%; max-width: 1100px;
+  margin: 0 auto; padding: 0 1.25rem;
+}
+
+.ts-quiz-sidebar {
+  padding: 3rem 2rem 3rem 0;
+  display: flex; flex-direction: column;
+  border-right: 1px solid var(--border);
+  position: sticky; top: 0; height: 100vh; overflow: hidden;
+}
+.ts-sidebar-logo { font-family: var(--font-display); font-size: 1.4rem; font-weight: 700; color: var(--text); margin-bottom: 2.5rem; }
+.ts-sidebar-logo span { color: var(--gold); }
+.ts-sidebar-progress-label { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 0.75rem; }
+.ts-sidebar-progress-track { height: 3px; background: var(--border); border-radius: 99px; overflow: hidden; margin-bottom: 2rem; }
+.ts-sidebar-progress-fill { height: 100%; background: var(--gold); border-radius: 99px; transition: width 0.5s var(--ease); width: 0%; }
+
+.ts-sidebar-steps { display: flex; flex-direction: column; gap: 0; flex: 1; }
+.ts-sidebar-step { display: flex; align-items: center; gap: 12px; padding: 10px 0; transition: all 0.3s var(--ease); position: relative; }
+.ts-sidebar-step:not(:last-child)::after { content: ''; position: absolute; left: 13px; top: 36px; width: 1px; height: calc(100% - 12px); background: var(--border); }
+.ts-step-dot { width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; color: var(--text-dim); flex-shrink: 0; transition: all 0.3s var(--ease); z-index: 1; background: var(--bg); }
+.ts-sidebar-step.active .ts-step-dot { border-color: var(--gold); background: var(--gold); color: var(--bg); }
+.ts-sidebar-step.done .ts-step-dot { border-color: var(--emerald); background: var(--emerald); color: #fff; }
+.ts-step-label { font-size: 12px; color: var(--text-dim); transition: all 0.3s var(--ease); line-height: 1.3; }
+.ts-sidebar-step.active .ts-step-label { color: var(--text); font-weight: 500; }
+
+.ts-quiz-main { padding: 3rem 0 3rem 3rem; display: flex; flex-direction: column; justify-content: center; min-height: 100vh; }
+.ts-quiz-q-counter { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); margin-bottom: 1rem; }
+.ts-quiz-question { font-family: var(--font-display); font-size: clamp(1.6rem,3vw,2.2rem); font-weight: 600; color: var(--text); line-height: 1.25; margin-bottom: 0.5rem; max-width: 560px; }
+.ts-quiz-hint { font-size: 13px; color: var(--text-dim); margin-bottom: 2rem; }
+
+/* ── Option Cards ── */
+.ts-options-grid { display: grid; gap: 10px; margin-bottom: 2.5rem; }
+.ts-options-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+.ts-options-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+.ts-option-card {
+  background: var(--bg-card); border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg); padding: 1.25rem 1rem;
+  cursor: pointer; transition: all 0.3s var(--ease);
+  display: flex; flex-direction: column; gap: 8px;
+  position: relative; overflow: hidden;
+}
+.ts-option-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg,rgba(232,168,56,0.08) 0%,transparent 60%); opacity: 0; transition: all 0.3s var(--ease); }
+.ts-option-card:hover { border-color: rgba(232,168,56,0.4); transform: translateY(-2px); }
+.ts-option-card:hover::before { opacity: 1; }
+.ts-option-card.selected { border-color: var(--gold); background: rgba(232,168,56,0.08); }
+.ts-option-card.selected::before { opacity: 1; }
+.ts-option-card.selected .ts-option-check { opacity: 1; transform: scale(1); }
+.ts-option-icon { font-size: 1.5rem; line-height: 1; }
+.ts-option-title { font-size: 14px; font-weight: 500; color: var(--text); }
+.ts-option-desc { font-size: 11px; color: var(--text-dim); line-height: 1.4; }
+.ts-option-check { position: absolute; top: 10px; right: 10px; width: 18px; height: 18px; border-radius: 50%; background: var(--gold); display: flex; align-items: center; justify-content: center; opacity: 0; transform: scale(0.5); transition: all 0.3s var(--ease); }
+.ts-option-check svg { width: 10px; height: 10px; }
+
+/* ── Pills ── */
+.ts-options-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 2.5rem; }
+.ts-option-pill { background: var(--bg-card); border: 1.5px solid var(--border); border-radius: 999px; padding: 10px 18px; font-size: 13px; color: var(--text-dim); cursor: pointer; transition: all 0.3s var(--ease); display: flex; align-items: center; gap: 6px; }
+.ts-option-pill:hover { border-color: rgba(232,168,56,0.4); color: var(--text); }
+.ts-option-pill.selected { border-color: var(--gold); background: rgba(232,168,56,0.1); color: var(--gold); }
+
+/* ── Textarea ── */
+.ts-notes-wrap { display: flex; flex-direction: column; gap: 8px; margin-bottom: 2.5rem; max-width: 540px; }
+.ts-notes-textarea { width: 100%; background: var(--bg-card); border: 1.5px solid var(--border); border-radius: var(--radius-lg); color: var(--text); font-family: var(--font-body); font-size: 14px; line-height: 1.7; padding: 1rem 1.25rem; resize: vertical; outline: none; transition: border-color 0.3s var(--ease); min-height: 120px; }
+.ts-notes-textarea::placeholder { color: var(--text-dim); opacity: 0.6; }
+.ts-notes-textarea:focus { border-color: var(--gold); background: rgba(232,168,56,0.04); }
+.ts-notes-counter { font-size: 11px; color: var(--text-dim); text-align: right; }
+.ts-notes-optional-label { font-size: 11px; color: var(--text-dim); opacity: 0.6; font-style: italic; }
+
+/* ── Quiz Nav ── */
+.ts-quiz-nav { display: flex; align-items: center; gap: 12px; }
+.ts-btn-nav-back { display: flex; align-items: center; gap: 6px; background: transparent; border: 1.5px solid var(--border); border-radius: 999px; color: var(--text-dim); font-family: var(--font-body); font-size: 14px; padding: 12px 22px; cursor: pointer; transition: all 0.3s var(--ease); }
+.ts-btn-nav-back:hover { border-color: var(--text-dim); color: var(--text); }
+.ts-btn-nav-back:disabled { opacity: 0.3; cursor: not-allowed; }
+.ts-btn-nav-next { display: flex; align-items: center; gap: 8px; background: var(--gold); border: none; border-radius: 999px; color: var(--bg); font-family: var(--font-body); font-size: 14px; font-weight: 500; padding: 12px 28px; cursor: pointer; transition: all 0.3s var(--ease); }
+.ts-btn-nav-next:hover { background: var(--gold-light); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(232,168,56,0.25); }
+.ts-btn-nav-next:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* ── Mobile Quiz Header ── */
+.ts-mobile-quiz-header { display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 50; background: var(--bg); border-bottom: 1px solid var(--border); padding: 1rem 1.25rem; align-items: center; justify-content: space-between; }
+.ts-mobile-logo { font-family: var(--font-display); font-size: 1.1rem; color: var(--text); }
+.ts-mobile-logo span { color: var(--gold); }
+.ts-mobile-progress { font-size: 12px; color: var(--text-dim); }
+
+/* ── Loading ── */
+.ts-loading-screen {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 2rem 1.25rem;
+  text-align: center; gap: 2rem;
+  background: var(--bg);
+  position: relative; z-index: 1;
+}
+.ts-loading-icon { width: 72px; height: 72px; border-radius: 50%; border: 2px solid var(--border); border-top-color: var(--gold); animation: spin 1.2s linear infinite; }
+.ts-loading-title { font-family: var(--font-display); font-size: 1.8rem; color: var(--text); }
+.ts-loading-sub { font-size: 14px; color: var(--text-dim); max-width: 320px; }
+.ts-loading-steps { display: flex; flex-direction: column; gap: 12px; align-items: center; }
+.ts-loading-step { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-dim); transition: all 0.3s var(--ease); }
+.ts-loading-step.active { color: var(--gold); }
+.ts-loading-step.done { color: var(--emerald); }
+.ts-loading-step-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: all 0.3s var(--ease); }
+.ts-loading-step.active .ts-loading-step-dot { background: var(--gold); animation: ts-pulse 1s ease infinite; }
+.ts-loading-step.done .ts-loading-step-dot { background: var(--emerald); }
+
+/* ── Results ── */
+.ts-results-screen {
+  position: relative; z-index: 1;
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center;
+  padding: 3rem 1.25rem;
+  max-width: 1100px; margin: 0 auto; width: 100%;
+  background: var(--bg);
+}
+.ts-results-header { text-align: center; margin-bottom: 2rem; width: 100%; }
+.ts-results-eyebrow { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.75rem; }
+.ts-results-title { font-family: var(--font-display); font-size: clamp(2rem,5vw,3rem); color: var(--text); line-height: 1.2; margin-bottom: 0.5rem; }
+.ts-results-title em { font-style: italic; color: var(--gold); }
+.ts-results-sub { font-size: 14px; color: var(--text-dim); }
+
+/* Style & Notes banners */
+.ts-style-banner { display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; padding: 7px 18px; font-size: 12px; font-weight: 500; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+.ts-notes-banner { display: flex; align-items: flex-start; gap: 10px; background: rgba(255,255,255,0.03); border: 1px solid var(--gold-border); border-radius: 12px; padding: 12px 18px; font-size: 12px; color: var(--text-dim); max-width: 560px; margin: 0.5rem auto 0; line-height: 1.6; text-align: left; }
+
+/* ── Soul Panel ── */
+.ts-soul-panel {
+  width: 100%; background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem 1.75rem;
+  margin-bottom: 2rem;
+  position: relative; overflow: hidden;
+  animation: fadeUp 0.5s ease both;
+}
+.ts-soul-panel::before {
+  content: '';
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: linear-gradient(to bottom, var(--gold), transparent);
+  border-radius: 3px 0 0 3px;
+}
+.ts-soul-panel-header { display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; }
+.ts-soul-icon { width: 34px; height: 34px; border-radius: 50%; background: var(--gold-dim); border: 1px solid var(--gold-border); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.ts-soul-panel-label { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); font-weight: 500; }
+.ts-soul-panel-sub { font-size: 12px; color: var(--text-dim); margin-top: 1px; }
+.ts-soul-explanation { font-family: var(--font-display); font-size: clamp(1rem,2vw,1.15rem); font-style: italic; color: var(--text); line-height: 1.75; margin-bottom: 1.25rem; min-height: 3rem; }
+.ts-soul-explanation .ts-hl { color: var(--gold); }
+.ts-soul-traits { display: flex; flex-wrap: wrap; gap: 8px; }
+.ts-soul-trait { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-dim); background: var(--bg-surface); border: 1px solid var(--border); border-radius: 999px; padding: 5px 12px; }
+.ts-trait-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); flex-shrink: 0; }
+.ts-typing-cursor { display: inline-block; width: 2px; height: 1em; background: var(--gold); margin-left: 2px; vertical-align: text-bottom; animation: ts-blinkCursor 0.8s step-end infinite; }
+
+/* ── Destination Cards ── */
+.ts-results-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  width: 100%;
+  margin-bottom: 2rem;
+}
+
+.ts-dest-card { background: var(--bg-card); border: 1.5px solid var(--border); border-radius: var(--radius-xl); overflow: hidden; cursor: pointer; transition: all 0.3s var(--ease); position: relative; animation: ts-cardIn 0.4s ease both; }
+.ts-dest-card:nth-child(2) { animation-delay: 0.08s; }
+.ts-dest-card:nth-child(3) { animation-delay: 0.16s; }
+.ts-dest-card:hover { border-color: rgba(232,168,56,0.35); transform: translateY(-3px); box-shadow: 0 16px 48px rgba(0,0,0,0.4); }
+.ts-dest-card.top-pick {
+  border-color: var(--gold);
+  grid-column: 1 / -1;
+}
+
+.ts-dest-card-badge { position: absolute; top: 14px; left: 14px; background: var(--gold); color: var(--bg); font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; z-index: 2; }
+
+.ts-dest-card-img { height: 180px; background: var(--bg-surface); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+.ts-dest-card.top-pick .ts-dest-card-img { height: 240px; }
+.ts-dest-card-img-bg { position: absolute; inset: 0; background-size: cover; background-position: center; transition: transform 0.5s var(--ease); }
+.ts-dest-card:hover .ts-dest-card-img-bg { transform: scale(1.05); }
+.ts-dest-card-img-placeholder { font-size: 4rem; opacity: 0.35; }
+
+.ts-dest-card-body { padding: 1.25rem; }
+.ts-dest-card-state { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); margin-bottom: 4px; }
+.ts-dest-card-name { font-family: var(--font-display); font-size: 1.3rem; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.ts-dest-card.top-pick .ts-dest-card-name { font-size: 1.9rem; }
+.ts-dest-card-reason { font-size: 13px; color: var(--text-dim); line-height: 1.6; margin-bottom: 1rem; }
+
+.ts-dest-itinerary-hint { background: rgba(255,255,255,0.03); border-left: 2px solid var(--gold); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 10px 12px; margin-bottom: 1rem; }
+.ts-dest-itinerary-label { font-size: 10px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); margin-bottom: 5px; }
+.ts-dest-itinerary-text { font-size: 12px; color: var(--text-dim); line-height: 1.6; }
+
+.ts-dest-card-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1rem; }
+.ts-dest-tag { font-size: 11px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--border); color: var(--text-dim); }
+.ts-dest-card-explore { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; color: var(--gold); background: none; border: none; padding: 0; cursor: pointer; text-decoration: none; transition: all 0.3s var(--ease); }
+.ts-dest-card-explore:hover { gap: 10px; }
+
+/* ── Results Actions ── */
+.ts-results-actions { display: flex; gap: 12px; justify-content: center; width: 100%; flex-wrap: wrap; }
+.ts-btn-outline { display: inline-flex; align-items: center; gap: 8px; background: transparent; border: 1.5px solid var(--border); border-radius: 999px; color: var(--text-dim); font-family: var(--font-body); font-size: 14px; padding: 12px 24px; cursor: pointer; transition: all 0.3s var(--ease); }
+.ts-btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+
+/* ── Handbook Overlay ── */
+.ts-handbook-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(8,12,20,0.95);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 2rem 1rem; overflow-y: auto;
+  animation: fadeUp 0.3s ease;
+}
+.ts-handbook-panel {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-xl); width: 100%; max-width: 680px;
+  padding: 2rem; position: relative; margin: auto;
+}
+.ts-handbook-close {
+  position: absolute; top: 1rem; right: 1rem;
+  background: none; border: none; color: var(--text-dim);
+  font-size: 1.5rem; cursor: pointer; line-height: 1;
+}
+.ts-hb-label { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--gold); margin-bottom: 4px; }
+.ts-hb-stat-card { border: 1px solid; border-radius: var(--radius-lg); padding: 1rem; }
+.ts-hb-budget-item { background: var(--bg-surface); border-radius: var(--radius-sm); padding: 10px; text-align: center; }
+.ts-hb-section { margin-bottom: 1.25rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--border); }
+.ts-hb-food-chip { background: rgba(232,168,56,0.1); border: 1px solid var(--gold-border); border-radius: 999px; padding: 4px 12px; font-size: 12px; color: var(--gold); }
+.ts-hb-trip-chip { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 999px; padding: 5px 12px; font-size: 12px; color: var(--text-dim); }
+.ts-hb-avoid { background: rgba(224,92,92,0.08); border: 1px solid rgba(224,92,92,0.2); border-radius: var(--radius-lg); padding: 1rem; margin-top: 1.25rem; }
+
+/* ── TripSoul Animations ── */
+@keyframes ts-pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(0.85); } }
+@keyframes ts-scrollLine { 0% { transform: scaleY(0); transform-origin: top; } 50% { transform: scaleY(1); transform-origin: top; } 51% { transform: scaleY(1); transform-origin: bottom; } 100% { transform: scaleY(0); transform-origin: bottom; } }
+@keyframes ts-cardIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes ts-blinkCursor { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+/* ── TripSoul Responsive ── */
+@media (max-width: 768px) {
+  .ts-quiz-layout { grid-template-columns: 1fr; padding: 0 1rem; }
+  .ts-quiz-sidebar { display: none; }
+  .ts-quiz-main { padding: 2rem 0; justify-content: flex-start; padding-top: 5rem; }
+  .ts-options-grid.cols-2, .ts-options-grid.cols-3 { grid-template-columns: 1fr 1fr; }
+  .ts-results-grid { grid-template-columns: 1fr; }
+  .ts-dest-card.top-pick { grid-template-columns: 1fr; }
+  .landing-stats { gap: 1.5rem; }
+  .ts-mobile-quiz-header { display: flex !important; }
+}
+

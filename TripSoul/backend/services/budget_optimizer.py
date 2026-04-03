@@ -80,7 +80,7 @@ async def optimize_budget(request: BudgetRequest) -> OptimizationResult:
     3. Generate itinerary from selected activities
     4. Compute trade-off metrics
     """
-    city_data = get_city_data(request.city)
+    city_data = await get_city_data(request.city)
     attractions = city_data.get("attractions", [])
 
     # Determine max items based on intensity

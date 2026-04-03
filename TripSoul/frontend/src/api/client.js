@@ -59,6 +59,13 @@ export const getAdaptationStatus = () => request('/adaptation/status');
 export const simulateDisruption = (data) =>
   request('/adaptation/simulate', { method: 'POST', body: data });
 
+// ── Recommend (AI-powered destination discovery) ──
+export const recommend = (prefs) =>
+  request('/recommend/destinations', { method: 'POST', body: prefs });
+
+export const getHandbook = (city) =>
+  request(`/recommend/handbook/${encodeURIComponent(city)}`);
+
 // ── Cities ──
 export const getCities = () => request('/cities');
 

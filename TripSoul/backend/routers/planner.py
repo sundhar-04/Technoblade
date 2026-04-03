@@ -40,7 +40,7 @@ async def search_flights_endpoint(request: FlightSearchRequest):
 async def search_hotels_endpoint(request: HotelSearchRequest):
     """Search available hotels in destination city based on preferences."""
     print(f"[HOTELS] Searching in {request.city} for {request.nights} nights, party of {request.party_size}")
-    hotels = search_hotels(
+    hotels = await search_hotels(
         city=request.city,
         nights=request.nights,
         budget=request.budget,
